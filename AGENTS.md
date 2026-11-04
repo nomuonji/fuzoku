@@ -58,3 +58,5 @@
 - シリーズの決めごと：`docs/series-bible.md`
 - 空虚さの根拠（台詞に使わない）：`docs/research/advanced-capitalism-emptiness.md`
 - 制作物：`productions/<話数>/`
+- 素材・音の選択肢（任意）：環境音・効果音（ヒール、蛍光灯、雨、ネオンの唸り）やBGMの差し替え候補は **Openverse**（キー不要。効果音は `source=freesound&license=cc0`、曲は `source=jamendo&license_type=commercial,modification`）。音の仕上がりは **earshot** で数値確認できる（声の下でBGMが下がっているか `timeline`、ヒールとカットの同期 `sheet --video`、-14 LUFS `measure`、権利処理不要のコード製効果音 `sfx`）。earshot は GitHub タグから導入（`pip install earshot` は別物）。手順と注意は [asset-sources.md](https://github.com/nomuonji/animation-factory/blob/main/docs/asset-sources.md)
+  - このシリーズでは：曲を足したら `assets/bgm/README.md` に出典・ライセンス・クレジットを書き、`tools/make.py` の概要欄クレジットに入れる。Openverse の**人物写真はチラシにも使わない**（写っている本人が風俗の文脈での使用に同意していない）。earshot の測定は人の試聴の代わりではない
