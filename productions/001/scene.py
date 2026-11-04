@@ -162,6 +162,13 @@ const SCN = {
    ${fl('flyer_c',330,260,-5,0.78)}${fl('flyer_a',410,860,4,0.8)}${fl('flyer_b',290,1330,-3,0.62)}
    <rect x="300" y="-200" width="480" height="2400" fill="url(#tube)" opacity=".18"/>`,1.0+0.1*ease(k),540,900,0,lerp(60,-90,ease(k)))+
   `<g opacity=".9">${rain(t,120,.5,110,0.07,1400,13)}</g><rect width="1080" height="1920" fill="#000" opacity=".22"/>`)},
+ teaser:(t,k,t0)=>{const d=t-t0;const hx=lerp(1050,520,ease(d/1.5));
+  return full(windowBg(t)+cam(kiosk(t,['袋に入れていない','商品があります',42],true)+palm(250,1110,0.5,-125,SK,SKS)+
+  `<g transform="translate(${hx} 1000)"><path d="M0 0 C20 -18 60 -20 90 -8 L520 40 L520 140 L80 90 C40 86 10 60 0 40 Z" fill="#2a2a2e"/>
+  <path d="M-80,-6 C-55,-24 -10,-20 6,-2 L18,36 C0,62 -36,62 -62,48 L-96,36 C-112,26 -104,0 -80,-6 Z" fill="${SK}"/>
+  <path d="M-80,-6 L-170,-2 C-186,2 -186,18 -170,20 L-86,20 Z" fill="${SK}"/><path d="M-60,40 L-140,52 C-152,56 -150,68 -138,68 L-58,58 Z" fill="${SK}"/></g>`,1.95+0.25*ease(k),380,1040,170,-60))},
+ black:(t,k)=>{const y=lerp(300,1700,k);return full(`<rect width="1080" height="1920" fill="#050506"/><rect x="0" y="${y}" width="1080" height="${lerp(40,6,k)}" fill="#e9e6df" opacity="${0.5*(1-k)}"/>
+  <rect x="0" y="${(y+700)%1920}" width="1080" height="3" fill="#e9e6df" opacity=".25"/>`)},
  neon:(t,k)=>full(`<rect width="1080" height="1920" fill="#0b0b0d"/><g opacity=".55">${rain(t,70,.3,90,0.1,1000,2)}</g>`)
 };
 function render(t){
@@ -173,7 +180,7 @@ function render(t){
   <div class="neon" style="font-size:150px">風俗行こう。</div><div class="neon" style="font-size:110px">そうだ、</div></div>
   <div style="position:absolute;left:0;right:0;top:1570px;text-align:center;color:#d9d9d9;font-size:34px;letter-spacing:.5em;opacity:${lerp(0,.8,(kk-1.6)/0.8)}">くだらない世界<div style="font-size:26px;letter-spacing:.3em;margin-top:18px;opacity:.7">#001</div></div>
   <div style="position:absolute;left:0;right:0;top:0;height:1920px;background:radial-gradient(ellipse 70% 45% at 50% 42%,rgba(255,46,136,${0.16*on}),rgba(0,0,0,0) 70%)"></div>`}
- const s=TL.subs.find(x=>t>=x[0]&&t<x[1]);document.getElementById('sub').textContent=s?s[2]:'';
+ const s=TL.subs.find(x=>t>=x[0]&&t<x[1]);const sb=document.getElementById('sub');sb.textContent=s?s[2]:'';sb.style.fontSize=t<TL.teaser_end?'62px':'52px';sb.style.top=t<TL.teaser_end?'1300px':'1360px';
  document.getElementById('grain').src='grain/g'+(Math.floor(t*24)%6)+'.png';
  let f=0; if(t>TL.total-0.6)f=(t-(TL.total-0.6))/0.6; document.getElementById('fade').style.opacity=f;
 }

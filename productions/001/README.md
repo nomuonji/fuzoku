@@ -1,4 +1,6 @@
-# #001 セルフレジ（v4・70秒）
+# #001 セルフレジ（v5・60秒）
+
+v5：冒頭3秒に「次は、わざと間違えようかと思った。」の場面を先出し→巻き戻して本編。冒頭の「今日、俺の肌に触れたのは〜」は削除。ナレーションは1.08倍速（`vo_fast/`）。オチは読み上げない。秒数はすべて `build_timeline.py` が決める。
 
 命題：影の労働と自己搾取（イリイチ／ハン）。失われたものは「人にしてもらうこと」。オチは、セルフサービスの世界に残った最後の「フルサービス」。台本の考え方は [高度資本主義の虚無レポート](https://claude.ai/artifact/Qi1PwpCd5kj9Ffd3cnt1Z9)。
 
@@ -9,7 +11,7 @@
 
 1. VOICEVOXエンジンを起動 → `python voicevox_tts.py 84 0.92 -0.04 preview.mp3`（行ごとのwavも出る。`vo/` は加工済み）
 2. `bgm.mp3` に [Signs To Nowhere](https://www.silvermansound.com/free-music/signs-to-nowhere) を置く（gitに入れない）
-3. `python scene.py` → `python render_frames.py` → `python audio.py`
+3. `python build_timeline.py` → `python scene.py` → `python render_frames.py`（`開始 終了` のフレーム番号を渡すと並列で回せる）→ `python audio.py`
 4. `ffmpeg -framerate 30 -i frames/%05d.jpg -i mix.wav -c:v libx264 -crf 25 -pix_fmt yuv420p -af loudnorm=I=-14:TP=-1.5 -c:a aac -b:a 192k -shortest out.mp4`
 
 ## 概要欄に必要なクレジット

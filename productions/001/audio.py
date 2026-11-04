@@ -59,13 +59,18 @@ def norm_rms(x, target_db):
 
 
 tl = json.loads((D / "timeline.json").read_text())
+EV = dict(tl["events"])
+SH = {}
+for a, b, n in tl["shots"]:
+    SH.setdefault(n, (a, b))
+TE = tl["teaser_end"]
 
 # ---------- narration
 vo = np.zeros(N)
 for k, s, d in tl["vo"]:
-    x = load(D / f"vo/{k}.wav")
+    x = load(D / f"vo_fast/{k}.wav")
     x = norm_rms(x, -18)
-    place(vo, x, s, 1.0 if k != 12 else 0.95)
+    place(vo, x, s)
 
 # ---------- BGM (Signs To Nowhere) with ducking under narration
 bgm = load(D / "bgm.mp3")[: N]
@@ -73,13 +78,13 @@ bgm = np.pad(bgm, (0, max(0, N - len(bgm))))
 bgm = norm_rms(bgm, -27)
 vo_env = np.convolve(np.abs(vo) > 0.003, np.ones(int(SR * 0.25)) / (SR * 0.25), mode="same")
 duck = 1 - 0.45 * np.clip(vo_env * 3, 0, 1)
-bgm_level = ramp([(0, 0), (0.8, 1), (55.95800000000001, 1), (58.35800000000001, 0.0), (70.28, 0)])
+bgm_level = ramp([(0, 0.6), (TE, 0.6), (TE + 0.05, 0), (TE + 0.5, 0), (TE + 1.2, 1), (EV["heels"] - 2.5, 1), (EV["heels"] - 0.1, 0.0), (DUR, 0)])
 bgm = bgm * duck * bgm_level
 
 # ---------- room tone: fluorescent hum inside the store (0-49s)
 t = np.arange(N) / SR
 hum = (np.sin(2 * np.pi * 100 * t) + 0.4 * np.sin(2 * np.pi * 200 * t) + 0.15 * np.sin(2 * np.pi * 300 * t)) * db(-46)
-hum *= ramp([(0, 0), (0.5, 1), (51.94233300000001, 1), (52.742333000000016, 0), (70.28, 0)])
+hum *= ramp([(0, 1), (TE, 1), (TE + 0.05, 0), (TE + 0.4, 0), (TE + 0.6, 1), (EV["door"], 1), (EV["door"] + 0.8, 0), (DUR, 0)])
 
 # ---------- rain: muffled inside, open outside, gone in the silence beat, faint at the end
 noise = rng.normal(0, 1, N)
@@ -91,15 +96,16 @@ for _ in range(900):
     tt = rng.uniform(0, DUR)
     n = int(SR * 0.012)
     place(drops, bp(rng.normal(0, 1, n), 2500, 9000) * env_ad(n, 0.0005, 0.003), tt, db(-30) * rng.uniform(0.3, 1))
-rain = rain_in * ramp([(0, 0), (0.6, 1), (52.242333000000016, 1), (52.84233300000002, 0), (70.28, 0)]) \
-    + (rain_out + drops) * ramp([(0, 0), (52.04233300000001, 0), (52.94233300000001, 1.25), (64.108, 1.1), (64.508, 0.0), (65.50800000000002, 0), (66.20800000000001, 0.35), (70.28, 0.25)])
+D_ = EV["door"]
+rain = rain_in * ramp([(0, 1), (TE, 1), (TE + 0.05, 0), (TE + 0.4, 0), (TE + 0.6, 1), (D_ + 0.1, 1), (D_ + 0.7, 0), (DUR, 0)]) \
+    + (rain_out + drops) * ramp([(0, 0), (D_ - 0.1, 0), (D_ + 0.8, 1.25), (EV["resolve"] - 0.4, 1.1), (EV["resolve"], 0.0), (EV["neon"], 0), (EV["neon"] + 0.7, 0.35), (DUR, 0.25)])
 
 sfx = np.zeros(N)
 # scanner beep
 def beep(f=2350, dur=0.11):
     n = int(SR * dur); tt = np.arange(n) / SR
     return np.sin(2 * np.pi * f * tt) * np.minimum(1, (n - np.arange(n)) / (SR * 0.01)) * np.minimum(1, np.arange(n) / (SR * 0.004))
-place(sfx, beep(), 0.25, db(-20)); place(sfx, beep(), 30.963333000000002, db(-21))
+place(sfx, beep(), EV["clerkin"] + 1.0, db(-21))
 
 # alert chime (two tones, falling)
 def chime():
@@ -109,8 +115,13 @@ def chime():
         tone = (np.sin(2 * np.pi * f * tt) + 0.3 * np.sin(2 * np.pi * 2 * f * tt)) * np.exp(-tt / 0.25)
         place(out, tone, i * 0.28)
     return out
-place(sfx, chime(), 28.463333000000006, db(-21))
-place(sfx, chime(), 29.363333000000004, db(-25))
+place(sfx, chime(), EV["alarm_teaser"] + 0.02, db(-19))
+place(sfx, chime(), EV["alarm"], db(-21))
+place(sfx, chime(), EV["alarm"] + 0.9, db(-25))
+# rewind: reversed rising hiss across the black
+n = int(SR * 0.35); tt = np.arange(n) / SR
+rw = bp(rng.normal(0, 1, n), 800, 6000) * np.sin(np.pi * tt / 0.35) * (0.5 + 0.5 * np.sign(np.sin(2 * np.pi * (20 + 120 * tt) * tt)))
+place(sfx, rw, TE, db(-22))
 # receipt printer
 n = int(SR * 1.7); tt = np.arange(n) / SR
 printer = bp(rng.normal(0, 1, n), 600, 4000) * (0.6 + 0.4 * np.sign(np.sin(2 * np.pi * 38 * tt))) * np.minimum(1, (n - np.arange(n)) / (SR * 0.05))
@@ -118,8 +129,8 @@ printer = bp(rng.normal(0, 1, n), 600, 4000) * (0.6 + 0.4 * np.sign(np.sin(2 * n
 # automatic door: motor + whoosh
 n = int(SR * 1.4); tt = np.arange(n) / SR
 door = (np.sin(2 * np.pi * (110 + 40 * tt) * tt) * 0.5 + bp(rng.normal(0, 1, n), 300, 2500)) * np.sin(np.pi * tt / 1.4)
-place(sfx, printer, 45.24033300000001, db(-30))
-place(sfx, door, 52.142333000000015, db(-28))
+place(sfx, printer, EV["printer"] + 0.1, db(-30))
+place(sfx, door, EV["door"], db(-28))
 # heels: three steps, wet pavement, a little space
 def heel():
     n = int(SR * 0.35); tt = np.arange(n) / SR
@@ -130,7 +141,7 @@ def heel():
     for dly, g in ((0.045, 0.35), (0.09, 0.2), (0.15, 0.1)):
         k = int(dly * SR); tail[k:] += x[: n - k] * g
     return x + lp(tail, 3000)
-for i, tt0 in enumerate((58.45800000000001, 59.058000000000014, 59.658000000000015)):
+for i, tt0 in enumerate((EV["heels"], EV["heels"] + 0.55, EV["heels"] + 1.1)):
     place(sfx, heel(), tt0, db(-12 - i * 1.5))
 # neon: crackle on flicker, then hum
 n = int(SR * 5.8); tt = np.arange(n) / SR
@@ -141,18 +152,18 @@ gate = np.array([1.0 if tt_ > 0.6 else fl[int(tt_ / 0.05) % len(fl)] for tt_ in 
 gate = np.convolve(gate, np.ones(96) / 96, mode="same")
 crack = bp(rng.normal(0, 1, n), 2000, 8000) * (np.abs(np.diff(np.r_[0, gate])) * 400).clip(0, 1)
 neon = buzz * gate * np.r_[np.ones(int(SR * 0.6)), np.linspace(1, 0.35, n - int(SR * 0.6))] * db(-30) + crack * db(-20)
-place(sfx, neon, 65.60800000000002)
+place(sfx, neon, EV["neon"])
 # low piano-ish note on the line
 n = int(SR * 4.5); tt = np.arange(n) / SR
 low = sum((1 / (h ** 1.3)) * np.sin(2 * np.pi * 55 * h * tt) * np.exp(-tt / (2.2 / h)) for h in range(1, 7))
 low *= np.minimum(1, np.arange(n) / (SR * 0.006))
-place(sfx, low, 66.25800000000001, db(-17))
+place(sfx, low, EV["low"], db(-15))
 
 mix = vo + bgm + hum + rain + sfx
 # gentle bus limiter
 peak = np.max(np.abs(mix))
 mix = np.tanh(mix / max(peak, 1e-9) * 1.3) * 0.89 if peak > 0.89 else mix
-fade = ramp([(0, 0), (0.05, 1), (69.68, 1), (70.28, 0)])
+fade = ramp([(0, 1), (DUR - 0.6, 1), (DUR, 0)])
 mix *= fade
 # stereo: narration centre, ambience slightly widened
 side = (rain + hum) * 0.0
