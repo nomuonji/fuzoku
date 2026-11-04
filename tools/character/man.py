@@ -12,8 +12,10 @@ SKIN_SH = "#8E8A83"
 ACCENT = "#FF2E88"
 
 
-def P(d, fill, extra=""):
-    return f'<path d="{d}" fill="{fill}" {extra}/>'
+def P(d, fill, extra="", rim=False):
+    """rim=True: a grey copy nudged up 3px behind the shape = rim light on the top edge (hair vs dark backgrounds)."""
+    back = f'<path d="{d}" fill="#5A5A60" transform="translate(0 -3.5)"/>' if rim else ""
+    return f'{back}<path d="{d}" fill="{fill}" {extra}/>'
 
 
 # ---------------------------------------------------------------- face parts
@@ -108,7 +110,7 @@ def head_front(cx, top, H, W, jaw="long", mode="blank", light="right"):
     s.append(P(f"M{cx-hw-3},{hair_line+H*0.12} C{cx-hw-6},{top+H*0.02} {cx-hw*0.2},{top-H*0.04} {cx+hw*0.15},{top} "
                f"C{cx+hw*0.85},{top+H*0.03} {cx+hw+5},{top+H*0.1} {cx+hw+2},{hair_line+H*0.12} "
                f"C{cx+hw*0.9},{hair_line} {cx+hw*0.5},{hair_line-H*0.05} {cx-hw*0.25},{hair_line-H*0.02} "
-               f"C{cx-hw*0.6},{hair_line+H*0.01} {cx-hw*0.85},{hair_line+H*0.05} {cx-hw-3},{hair_line+H*0.12} Z", INK))
+               f"C{cx-hw*0.6},{hair_line+H*0.01} {cx-hw*0.85},{hair_line+H*0.05} {cx-hw-3},{hair_line+H*0.12} Z", INK, rim=True))
     # loose strand falling over forehead (part breaking down)
     s.append(P(f"M{cx-hw*0.25},{hair_line-H*0.02} C{cx-hw*0.1},{hair_line+H*0.06} {cx-hw*0.05},{hair_line+H*0.1} {cx-hw*0.12},{hair_line+H*0.14} "
                f"C{cx},{hair_line+H*0.08} {cx+hw*0.05},{hair_line+H*0.02} {cx+hw*0.05},{hair_line-H*0.04} Z", INK))
@@ -242,7 +244,7 @@ def body_side(cx, top, H, W, heads=7.5, coat_len=0.63, slouch=26):
     s.append(P(f"M{hx-W*0.42},{ht+H*0.55} C{hx-W*0.5},{ht+H*0.1} {hx-W*0.1},{ht-H*0.05} {hx+W*0.2},{ht+H*0.02} "
                f"C{hx+W*0.38},{ht+H*0.06} {hx+W*0.42},{ht+H*0.16} {hx+W*0.36},{ht+H*0.24} "
                f"C{hx+W*0.2},{ht+H*0.2} {hx},{ht+H*0.22} {hx-W*0.15},{ht+H*0.3} "
-               f"C{hx-W*0.2},{ht+H*0.4} {hx-W*0.25},{ht+H*0.5} {hx-W*0.3},{ht+H*0.6} Z", INK))
+               f"C{hx-W*0.2},{ht+H*0.4} {hx-W*0.25},{ht+H*0.5} {hx-W*0.3},{ht+H*0.6} Z", INK, rim=True))
     s.append(P(f"M{hx-W*0.17},{ht+H*0.3} L{hx-W*0.25},{ht+H*0.42} L{hx-W*0.2},{ht+H*0.5} L{hx-W*0.12},{ht+H*0.36} Z", MID))
     s.append('</g>')
     return "".join(s)
@@ -279,7 +281,7 @@ def body_back(cx, top, H, W, heads=7.5, shoulder=2.3, coat_len=0.63, coat_flare=
     s.append(f'<g id="head"><ellipse cx="{cx-hw-3}" cy="{top+H*0.56}" rx="6" ry="{H*0.12:.1f}" fill="{SKIN_SH}"/>'
              f'<ellipse cx="{cx+hw+3}" cy="{top+H*0.56}" rx="6" ry="{H*0.12:.1f}" fill="{SKIN_SH}"/>')
     s.append(P(f"M{cx-hw-2},{top+H*0.35} C{cx-hw-5},{top} {cx+hw+5},{top} {cx+hw+2},{top+H*0.35} "
-               f"L{cx+hw*0.85},{top+H*0.82} C{cx+hw*0.4},{top+H*0.9} {cx-hw*0.4},{top+H*0.9} {cx-hw*0.85},{top+H*0.82} Z", INK))
+               f"L{cx+hw*0.85},{top+H*0.82} C{cx+hw*0.4},{top+H*0.9} {cx-hw*0.4},{top+H*0.9} {cx-hw*0.85},{top+H*0.82} Z", INK, rim=True))
     for side in (-1, 1):
         s.append(P(f"M{cx+side*(hw+1)},{top+H*0.35} L{cx+side*(hw-6)},{top+H*0.4} L{cx+side*(hw*0.86)},{top+H*0.78} L{cx+side*(hw-1)},{top+H*0.72} Z", MID))
     s.append('</g>')

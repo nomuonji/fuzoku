@@ -1,3 +1,10 @@
 __pycache__/
 *.pyc
 tools/cards/_*.html
+productions/*/frames/
+productions/*/grain/
+productions/*/ep001.html
+productions/*/mix.wav
+productions/*/bgm/
+*.mp4
+models/
