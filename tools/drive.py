@@ -20,8 +20,30 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 CFG = json.loads((ROOT / "publish.json").read_text())
 
 
+def _service_account_info():
+    raw = os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON", "").strip()
+    if not raw:
+        sys.exit("GOOGLE_SERVICE_ACCOUNT_JSON が空")
+    try:
+        info = json.loads(raw)
+        if isinstance(info, str):  # 文字列として二重にエンコードされている
+            info = json.loads(info)
+    except json.JSONDecodeError as e:
+        sys.exit(f"GOOGLE_SERVICE_ACCOUNT_JSON がJSONとして読めない（{e.msg}, {len(raw)}文字）")
+    for k in ("service_account", "credentials", "key"):  # 入れ子で包まれている
+        if isinstance(info, dict) and "client_email" not in info and isinstance(info.get(k), dict):
+            info = info[k]
+    if not isinstance(info, dict) or "client_email" not in info or "private_key" not in info:
+        kind = info.get("type") if isinstance(info, dict) else type(info).__name__
+        keys = sorted(info)[:12] if isinstance(info, dict) else []
+        sys.exit(f"サービスアカウントの鍵ではない（type={kind}, キー={keys}）。"
+                 "GCPで発行した「サービスアカウントキー」のJSON（type が service_account）をそのまま入れる")
+    info.setdefault("token_uri", "https://oauth2.googleapis.com/token")
+    return info
+
+
 def drive():
-    info = json.loads(os.environ["GOOGLE_SERVICE_ACCOUNT_JSON"])
+    info = _service_account_info()
     cred = service_account.Credentials.from_service_account_info(info, scopes=["https://www.googleapis.com/auth/drive"])
     return build("drive", "v3", credentials=cred, cache_discovery=False)
 
