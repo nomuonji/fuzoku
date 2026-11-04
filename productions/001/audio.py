@@ -155,6 +155,8 @@ gate = np.convolve(gate, np.ones(96) / 96, mode="same")
 crack = bp(rng.normal(0, 1, n), 2000, 8000) * (np.abs(np.diff(np.r_[0, gate])) * 400).clip(0, 1)
 neon = buzz * gate * np.r_[np.ones(int(SR * 0.6)), np.linspace(1, 0.35, n - int(SR * 0.6))] * db(-30) + crack * db(-20)
 place(sfx, neon, EV["neon"])
+# シリーズ名のネオン（短く、オチより小さく）
+place(sfx, neon[: int(SR * 1.3)] * np.linspace(1, 0, int(SR * 1.3)), EV["rewind"] + 0.55, db(-4))
 # low piano-ish note on the line
 n = int(SR * 4.5); tt = np.arange(n) / SR
 low = sum((1 / (h ** 1.3)) * np.sin(2 * np.pi * 55 * h * tt) * np.exp(-tt / (2.2 / h)) for h in range(1, 7))

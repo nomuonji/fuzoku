@@ -51,7 +51,7 @@ end = say(8, 0.45, 0.25)
 subs[-1][2] = "次は、わざと\n間違えようかと思った。"
 shots.append([0.0, end, "teaser"])
 ev["rewind"] = end
-t = end + 1.25                      # 暗転＋巻き戻しの音＋シリーズ名（何の動画かをここで示す）
+t = end + 1.65                      # 暗転＋巻き戻しの音＋ネオンのシリーズ名（何の動画かをここで示す）
 shots.append([end, t, "black"])
 
 # ---- story

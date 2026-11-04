@@ -167,17 +167,20 @@ const SCN = {
   `<g transform="translate(${hx} 1000)"><path d="M0 0 C20 -18 60 -20 90 -8 L520 40 L520 140 L80 90 C40 86 10 60 0 40 Z" fill="#2a2a2e"/>
   <path d="M-80,-6 C-55,-24 -10,-20 6,-2 L18,36 C0,62 -36,62 -62,48 L-96,36 C-112,26 -104,0 -80,-6 Z" fill="${SK}"/>
   <path d="M-80,-6 L-170,-2 C-186,2 -186,18 -170,20 L-86,20 Z" fill="${SK}"/><path d="M-60,40 L-140,52 C-152,56 -150,68 -138,68 L-58,58 Z" fill="${SK}"/></g>`,1.95+0.25*ease(k),380,1040,170,-60))},
- black:(t,k,t0)=>{const d=t-t0;const y=lerp(300,1700,Math.min(1,d/0.35));const o=lerp(0,1,(d-0.15)/0.2)*lerp(1,0,(d-1.0)/0.25);
-  return full(`<rect width="1080" height="1920" fill="#050506"/><rect x="0" y="${y}" width="1080" height="${lerp(40,6,d/0.35)}" fill="#e9e6df" opacity="${0.5*Math.max(0,1-d/0.35)}"/>
-  <g opacity="${o}"><text x="540" y="900" text-anchor="middle" font-family="Noto Serif CJK JP" font-size="74" font-weight="700" letter-spacing="10" fill="#ece9e2">そうだ、風俗行こう。</text>
-  <line x1="380" y1="975" x2="700" y2="975" stroke="#77777d" stroke-width="2"/>
-  <text x="540" y="1060" text-anchor="middle" font-family="Noto Serif CJK JP" font-size="48" letter-spacing="10" fill="#b4b2ac">#${TL.no}　${TL.title}</text></g>`)},
+ black:(t,k,t0)=>{const d=t-t0;const y=lerp(300,1700,Math.min(1,d/0.35));
+  return full(`<rect width="1080" height="1920" fill="#050506"/><rect x="0" y="${y}" width="1080" height="${lerp(40,6,d/0.35)}" fill="#e9e6df" opacity="${0.5*Math.max(0,1-d/0.35)}"/>`)},
  neon:(t,k)=>full(`<rect width="1080" height="1920" fill="#0b0b0d"/><g opacity=".55">${rain(t,70,.3,90,0.1,1000,2)}</g>`)
 };
 function render(t){
  const sh=TL.shots.find(s=>t>=s[0]&&t<s[1])||TL.shots[TL.shots.length-1];
  const k=(t-sh[0])/(sh[1]-sh[0]);
  const sc=document.getElementById('scene'); sc.innerHTML=SCN[sh[2]](t,k,sh[0]);
+ if(sh[2]==='black'){const d=t-sh[0];const fl=[1,0,1,1,0,0,1,0,1,1,1,1];const on=d<0.2?0:(d<0.75?fl[Math.floor((d-0.2)/0.05)%fl.length]:1);
+  const out=lerp(1,0,(d-(sh[1]-sh[0])-(-0.25))/0.25);
+  sc.innerHTML+=`<div style="position:absolute;left:0;right:0;top:760px;text-align:center;opacity:${on*out}">
+  <div class="neon" style="writing-mode:horizontal-tb;font-size:96px;letter-spacing:.04em">そうだ、風俗行こう。</div>
+  <div style="margin-top:46px;color:#d9d9d9;font-size:40px;letter-spacing:.3em">#${TL.no}　${TL.title}</div></div>
+  <div style="position:absolute;left:0;right:0;top:0;height:1920px;background:radial-gradient(ellipse 70% 30% at 50% 42%,rgba(255,46,136,${0.14*on*out}),rgba(0,0,0,0) 70%)"></div>`}
  if(t>=EV.neon){const kk=t-EV.neon;const fl=[1,0,1,1,0,0,1,0,1,1,1,1];const on=kk>0.6?1:fl[Math.floor(kk/0.05)%fl.length];
   sc.innerHTML+=`<div style="position:absolute;left:0;right:0;top:560px;display:flex;justify-content:center;gap:40px;opacity:${on}">
   <div class="neon" style="font-size:150px">風俗行こう。</div><div class="neon" style="font-size:110px">そうだ、</div></div>
