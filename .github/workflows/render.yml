@@ -1,7 +1,8 @@
 # 1話を GitHub Actions 上で書き出す（手動実行）。
 # Actions → render → Run workflow → 話数（例: 001）
 # 出力は Artifacts の「<no>-<slug>」に mp4・投稿用JSON・upload.txt・still.jpg。
-# 「send」にチェックすると、そのまま Drive の v-stock/ちんすけ/queue に入る（secrets.GOOGLE_SERVICE_ACCOUNT_JSON が要る）。
+# 「書き出したあと」で、ちんすけのチャンネルへ直接投稿するか、Driveの予約キューへ入れるかを選ぶ。
+# 直接投稿は secrets の GOOGLE_SERVICE_ACCOUNT_JSON・GOOGLE_CLIENT_ID・GOOGLE_CLIENT_SECRET が要る（video-publisherと同じ値）。
 # vo/ が揃っていない話は VOICEVOX を起動して声から作る。
 name: render
 on:
@@ -11,10 +12,11 @@ on:
         description: 話数（productions/ の下のフォルダ名）
         required: true
         default: "001"
-      send:
-        description: 書き出したら Drive の ちんすけ/queue に入れる（投稿は video-publisher の予定時刻）
-        type: boolean
-        default: false
+      post:
+        description: 書き出したあと
+        type: choice
+        options: [書き出しだけ, 今すぐ投稿（公開）, 今すぐ投稿（非公開で確認）, ちんすけの予約キューへ]
+        default: 書き出しだけ
 permissions:
   contents: write
 jobs:
@@ -49,14 +51,22 @@ jobs:
             out/${{ steps.name.outputs.n }}.upload.txt
             out/${{ steps.name.outputs.n }}.json
             productions/${{ inputs.episode }}/still.jpg
-      - name: send to video-publisher
-        if: ${{ inputs.send }}
+      - name: post
+        if: ${{ inputs.post != '書き出しだけ' }}
         env:
           GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          MODE: ${{ inputs.post }}
+          EP: productions/${{ inputs.episode }}
         run: |
-          python tools/drive.py send productions/${{ inputs.episode }}
+          case "$MODE" in
+            "今すぐ投稿（公開）") python tools/youtube.py $EP ;;
+            "今すぐ投稿（非公開で確認）") python tools/youtube.py $EP --private ;;
+            "ちんすけの予約キューへ") python tools/drive.py send $EP ;;
+          esac
           git config user.name "github-actions[bot]"
           git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
-          git add productions/${{ inputs.episode }}/episode.json productions/${{ inputs.episode }}/still.jpg
-          git commit -m "#${{ inputs.episode }} queued to video-publisher" || true
+          git add $EP/episode.json $EP/still.jpg
+          git commit -m "#${{ inputs.episode }}: $MODE" || true
           git push

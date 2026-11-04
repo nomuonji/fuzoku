@@ -13,7 +13,7 @@
 | 5 | ナレーション | `lines.json` に台詞を1行ずつ → `bash tools/voicevox/start.sh` → `python tools/vo.py productions/002` | |
 | 6 | 画と秒数 | `build_timeline.py`（秒数・字幕・効果音のきっかけ）と `scene.py`（場面ごとの画）を書き換える。雛形は #001 のコード | |
 | 7 | 書き出し | `python tools/make.py productions/002`（手元）か、Actions の **render** を手動実行 | 書き出した動画を自分で見る。コマ送りで字幕の折り返しと画の切れ目を確認 |
-| 8 | 投稿キューに入れる | `python tools/drive.py send productions/002`（手元）か、Actions の **render** を「send」にチェックして実行。Driveの `v-stock/ちんすけ/queue` に動画と同名のJSON（タイトル・概要欄・ハッシュタグ）が入り、video-publisher が予定の時刻に投稿する | 送る前に `out/002-*.json` のタイトルと概要欄を見る |
+| 8 | 投稿する | **直接**：`python tools/youtube.py productions/002`（`--private` で非公開の確認投稿）か、Actions の **render** で「今すぐ投稿」。**予約**：`python tools/drive.py send productions/002` か render で「ちんすけの予約キューへ」。Driveの `v-stock/ちんすけ/queue` に動画と同名のJSON（タイトル・概要欄・ハッシュタグ）が入り、video-publisher が予定の時刻に投稿する | 送る前に `out/002-*.json` のタイトルと概要欄を見る |
 | 9 | 公開済みにする | Actions の **collect**（1日2回自動）が `posted` のJSONから YouTube ID を読み、`episode.json` を `published` にする。手元なら `python tools/drive.py collect` | |
 | 10 | 受け皿に載せる | `python tools/sync_chonmage.py ../chonmage-ja` → chonmage-ja で build → push | |
 
@@ -47,6 +47,7 @@
 ## 投稿（video-publisher）
 
 - 投稿先は `publish.json`（Driveの `v-stock` の下の `ちんすけ`）。投稿の時刻と、YouTube以外のSNSにも出すかどうかは、video-publisher 側の「ちんすけ」の設定（config.json）が決める
+- 直接投稿（`tools/youtube.py`）は動画をDriveに置かない。ちんすけのチャンネルの認証（リフレッシュトークン）だけを config.json から読み、OAuthクライアントは secret の `GOOGLE_CLIENT_ID`・`GOOGLE_CLIENT_SECRET`（video-publisher と同じ値）を使う
 - Driveに手で入れても投稿される。そのときは同名のJSONを横に置かないと、ちんすけ共通のタイトル・概要欄で出る
 - 認証は video-publisher と同じサービスアカウント。fuzoku の Actions には secret `GOOGLE_SERVICE_ACCOUNT_JSON` を入れておく
 - `aiLabel`（`publish.json` の `ai_label`）は true。チラシに実写風のAI画像を使っているので、YouTubeの「改変・合成コンテンツ」の申告を付ける
