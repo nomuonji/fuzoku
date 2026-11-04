@@ -1,6 +1,7 @@
 # 1話を GitHub Actions 上で書き出す（手動実行）。
 # Actions → render → Run workflow → 話数（例: 001）
-# 出力は Artifacts の「<no>-<slug>」に mp4・upload.txt・still.jpg。
+# 出力は Artifacts の「<no>-<slug>」に mp4・投稿用JSON・upload.txt・still.jpg。
+# 「send」にチェックすると、そのまま Drive の v-stock/ちんすけ/queue に入る（secrets.GOOGLE_SERVICE_ACCOUNT_JSON が要る）。
 # vo/ が揃っていない話は VOICEVOX を起動して声から作る。
 name: render
 on:
@@ -10,6 +11,12 @@ on:
         description: 話数（productions/ の下のフォルダ名）
         required: true
         default: "001"
+      send:
+        description: 書き出したら Drive の ちんすけ/queue に入れる（投稿は video-publisher の予定時刻）
+        type: boolean
+        default: false
+permissions:
+  contents: write
 jobs:
   render:
     runs-on: ubuntu-latest
@@ -22,7 +29,7 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq ffmpeg fonts-noto-cjk fonts-noto-cjk-extra
-          pip install -q numpy scipy pillow playwright
+          pip install -q numpy scipy pillow playwright google-api-python-client google-auth
           python -m playwright install --with-deps chromium
       - name: voice
         run: |
@@ -40,4 +47,16 @@ jobs:
           path: |
             out/${{ steps.name.outputs.n }}.mp4
             out/${{ steps.name.outputs.n }}.upload.txt
+            out/${{ steps.name.outputs.n }}.json
             productions/${{ inputs.episode }}/still.jpg
+      - name: send to video-publisher
+        if: ${{ inputs.send }}
+        env:
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+        run: |
+          python tools/drive.py send productions/${{ inputs.episode }}
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add productions/${{ inputs.episode }}/episode.json productions/${{ inputs.episode }}/still.jpg
+          git commit -m "#${{ inputs.episode }} queued to video-publisher" || true
+          git push

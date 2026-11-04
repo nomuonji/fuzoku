@@ -2,7 +2,7 @@
 
     python tools/sync_chonmage.py ../chonmage-ja
 
-productions/*/episode.json のうち status が ready / published の話を
+productions/*/episode.json のうち status が ready / queued / published の話を
 （youtube_id が入っていれば埋め込み、無ければ「近日公開」として）
 chonmage-ja/src/data/souda-episodes.json に書き出し、still.jpg を
 chonmage-ja/public/souda/<no>.jpg に複製する。そのあと chonmage-ja 側で build → push。
@@ -17,7 +17,7 @@ site = pathlib.Path(sys.argv[1]).resolve()
 eps = []
 for m in sorted(ROOT.glob("productions/[0-9]*/episode.json")):
     e = json.loads(m.read_text())
-    if e.get("status") not in ("ready", "published") and not e.get("youtube_id"):
+    if e.get("status") not in ("ready", "queued", "published") and not e.get("youtube_id"):
         continue
     still = m.parent / "still.jpg"
     img = ""

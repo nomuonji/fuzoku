@@ -4,7 +4,8 @@
     python tools/make.py productions/001 --audio    # 音だけ作り直して書き出し直す（画は前回のまま）
 
 順番：build_timeline.py → scene.py → 画（並列）→ audio.py → mp4
-出力：out/<no>-<slug>.mp4 と out/<no>-<slug>.upload.txt（YouTubeに貼るタイトルと概要欄）、
+出力：out/<no>-<slug>.mp4、out/<no>-<slug>.json（video-publisher用のタイトル・概要欄）、
+      out/<no>-<slug>.upload.txt（手で貼るとき用）、
       productions/<no>/still.jpg（chonmage-ja の /souda/ に載せる静止画）
 
 vo/ が無い行があれば止まる。先に tools/vo.py で声を作る。
@@ -66,6 +67,15 @@ def main():
         run("ffmpeg", "-v", "error", "-y", "-i", src, "-vf", "scale=720:-1", "-q:v", "4", ep / "still.jpg", cwd=ep)
 
     yt = meta["youtube"]
+    pub = json.loads((ROOT / "publish.json").read_text())
+    # video-publisher が読むサイドカー。概要欄の末尾にハッシュタグは向こうが足す
+    (out / f"{name}.json").write_text(json.dumps({
+        "title": yt["title"],
+        "description": f"{yt['description']}\n\n{CREDITS}",
+        "hashtags": " ".join(yt.get("hashtags", [])),
+        "aiLabel": pub.get("ai_label", True),
+        "episode": meta["no"],
+    }, ensure_ascii=False, indent=2), encoding="utf-8")
     (out / f"{name}.upload.txt").write_text(
         f"タイトル\n{yt['title']}\n\n概要欄\n{yt['description']}\n\n{' '.join(yt.get('hashtags', []))}\n\n{CREDITS}\n",
         encoding="utf-8")

@@ -1,0 +1,28 @@
+# video-publisher が投稿した話の YouTube ID を episode.json に書き戻す（1日2回＋手動）。
+# Drive の v-stock/ちんすけ/posted/<no>-<slug>.json を読む。
+# 書き戻したあと chonmage-ja へ載せるのは手元で `python tools/sync_chonmage.py ../chonmage-ja`。
+name: collect
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 3,15 * * *"
+permissions:
+  contents: write
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -q google-api-python-client google-auth
+      - env:
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+        run: |
+          if [ -z "$GOOGLE_SERVICE_ACCOUNT_JSON" ]; then echo "secret GOOGLE_SERVICE_ACCOUNT_JSON が未設定"; exit 0; fi
+          python tools/drive.py collect
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add productions/*/episode.json
+          git commit -m "Mark published episodes (youtube_id from video-publisher)" || echo "no change"
+          git push

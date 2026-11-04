@@ -13,8 +13,9 @@
 | 5 | ナレーション | `lines.json` に台詞を1行ずつ → `bash tools/voicevox/start.sh` → `python tools/vo.py productions/002` | |
 | 6 | 画と秒数 | `build_timeline.py`（秒数・字幕・効果音のきっかけ）と `scene.py`（場面ごとの画）を書き換える。雛形は #001 のコード | |
 | 7 | 書き出し | `python tools/make.py productions/002`（手元）か、Actions の **render** を手動実行 | 書き出した動画を自分で見る。コマ送りで字幕の折り返しと画の切れ目を確認 |
-| 8 | 公開 | `out/002-*.upload.txt` のタイトルと概要欄をそのまま使う。公開したら `episode.json` に `youtube_id`・`published`、`status: "published"` | |
-| 9 | 受け皿に載せる | `python tools/sync_chonmage.py ../chonmage-ja` → chonmage-ja で build → push | |
+| 8 | 投稿キューに入れる | `python tools/drive.py send productions/002`（手元）か、Actions の **render** を「send」にチェックして実行。Driveの `v-stock/ちんすけ/queue` に動画と同名のJSON（タイトル・概要欄・ハッシュタグ）が入り、video-publisher が予定の時刻に投稿する | 送る前に `out/002-*.json` のタイトルと概要欄を見る |
+| 9 | 公開済みにする | Actions の **collect**（1日2回自動）が `posted` のJSONから YouTube ID を読み、`episode.json` を `published` にする。手元なら `python tools/drive.py collect` | |
+| 10 | 受け皿に載せる | `python tools/sync_chonmage.py ../chonmage-ja` → chonmage-ja で build → push | |
 
 一部だけ直すとき：
 - 台詞を1行直した → `python tools/vo.py productions/002 7`（7行目だけ）→ `make.py`
@@ -36,12 +37,19 @@
 | 項目 | 使い道 |
 | --- | --- |
 | `no` `slug` `title` | ファイル名と話の名前 |
-| `status` | `draft` → `ready`（書き出し済み）→ `published` |
+| `status` | `draft` → `ready`（書き出し済み）→ `queued`（ちんすけのキューに入れた）→ `published` |
 | `scene` `line` | chonmage-ja の `/souda/` に出る、場面の一文と言語化の一行 |
 | `escape` | `/souda/` でその話の下に出す逃げ道（`yumeoto` か `delice`） |
 | `still_time` | `/souda/` に載せる静止画を何秒目から切るか |
 | `youtube` | タイトル・概要欄・ハッシュタグ。**「風俗」・リンク・店名・料金を入れない** |
 | `youtube_id` `published` | 公開したら埋める。`/souda/` に動画が埋め込まれる |
+
+## 投稿（video-publisher）
+
+- 投稿先は `publish.json`（Driveの `v-stock` の下の `ちんすけ`）。投稿の時刻と、YouTube以外のSNSにも出すかどうかは、video-publisher 側の「ちんすけ」の設定（config.json）が決める
+- Driveに手で入れても投稿される。そのときは同名のJSONを横に置かないと、ちんすけ共通のタイトル・概要欄で出る
+- 認証は video-publisher と同じサービスアカウント。fuzoku の Actions には secret `GOOGLE_SERVICE_ACCOUNT_JSON` を入れておく
+- `aiLabel`（`publish.json` の `ai_label`）は true。チラシに実写風のAI画像を使っているので、YouTubeの「改変・合成コンテンツ」の申告を付ける
 
 ## 公開と誘導
 

@@ -12,11 +12,13 @@ python tools/new_episode.py 002 biyoushitsu     # 作業場所を作る
 bash tools/voicevox/start.sh                     # VOICEVOXエンジン起動
 python tools/vo.py productions/002               # ナレーション
 # build_timeline.py と scene.py を場面に合わせて書き換える
-python tools/make.py productions/002             # → out/002-biyoushitsu.mp4 と upload.txt
+python tools/make.py productions/002             # → out/002-biyoushitsu.mp4 と投稿用JSON
+python tools/drive.py send productions/002       # Driveの ちんすけ/queue へ（video-publisherが予定時刻に投稿）
+python tools/drive.py collect                    # 投稿された話のYouTube IDを書き戻す（Actionsで1日2回自動）
 python tools/sync_chonmage.py ../chonmage-ja     # 受け皿ページに載せる
 ```
 
-GitHub Actions の **render** を手動実行しても同じものが書き出せる（Artifactsに mp4・概要欄の文面・静止画）。詳しい流れと公開ルールは [`docs/factory.md`](docs/factory.md)。
+GitHub Actions の **render** を手動実行しても同じものが書き出せる（Artifactsに mp4・概要欄の文面・静止画）。「send」にチェックすると、そのまま ちんすけ のキューに入る。詳しい流れと公開ルールは [`docs/factory.md`](docs/factory.md)。
 
 ## 中身
 
@@ -32,7 +34,7 @@ GitHub Actions の **render** を手動実行しても同じものが書き出�
 | `assets/character/` | 男（A案）と通りすがりの女のSVG |
 | `assets/flyers/` | 風俗チラシの静止画（白黒・文字なし） |
 | `assets/bgm/` | BGMとクレジット |
-| `tools/` | `new_episode.py` `vo.py` `make.py` `sync_chonmage.py`、`voicevox/`（エンジン起動）、`character/`（キャラ生成）、`cards/` |
+| `tools/` | `new_episode.py` `vo.py` `make.py` `drive.py` `sync_chonmage.py`、`voicevox/`（エンジン起動）、`character/`（キャラ生成）、`cards/` |
 
 ## 誘導
 
