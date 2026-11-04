@@ -20,23 +20,26 @@ def P(d, fill, extra="", rim=False):
 
 # ---------------------------------------------------------------- face parts
 def eyes(cx, ey, sep, w, mode="blank"):
-    """mode: blank | distant | glance | resolve"""
+    """Heavy-lidded, slightly drooping 'bedroom' eyes. mode: blank | distant | glance | resolve"""
     out = []
+    droop = 2.8
+    lid = {"blank": 6.6, "distant": 4.4, "glance": 7.2, "resolve": 5.6}[mode]
     for side in (-1, 1):
         x = cx + side * sep
-        x0, x1 = x - w / 2, x + w / 2
-        lid_drop = {"blank": 3.4, "distant": 2.0, "glance": 4.6, "resolve": 0.8}[mode]
-        # white of eye (barely)
-        out.append(P(f"M{x0},{ey} Q{x},{ey-3} {x1},{ey} Q{x},{ey+4} {x0},{ey} Z", PAPER))
-        # pupil
-        px = x + {"blank": 0, "distant": -w * 0.22, "glance": w * 0.36, "resolve": 0}[mode]
-        py = ey + {"blank": 0.6, "distant": -1.4, "glance": 1.0, "resolve": 0.4}[mode]
-        out.append(f'<circle cx="{px:.1f}" cy="{py:.1f}" r="{w*0.16:.1f}" fill="{INK}"/>')
-        # heavy hooded upper lid
-        out.append(P(f"M{x0-1.5},{ey+0.5} Q{x},{ey-4.5} {x1+1.5},{ey+0.5} "
-                     f"L{x1+1},{ey-lid_drop+2.4} Q{x},{ey-lid_drop-3.8} {x0-1},{ey-lid_drop+2.4} Z", INK))
-        # crease of the hooded eyelid / bags
-        out.append(f'<path d="M{x0+1},{ey+5.5} Q{x},{ey+8} {x1-1},{ey+5.5}" stroke="{SKIN_SH}" stroke-width="1.6" fill="none"/>')
+        xi, xo = x - side * w / 2, x + side * w / 2
+        # white
+        out.append(P(f"M{xi},{ey} Q{x},{ey-3} {xo},{ey+droop} Q{x},{ey+4.5} {xi},{ey} Z", PAPER))
+        px = x + {"blank": side * -0.04 * w, "distant": -w * 0.22, "glance": w * 0.34, "resolve": 0}[mode]
+        py = ey + {"blank": 1.4, "distant": -0.6, "glance": 1.6, "resolve": 1.0}[mode]
+        out.append(f'<circle cx="{px:.1f}" cy="{py:.1f}" r="{w*0.17:.1f}" fill="{INK}"/>')
+        # heavy upper lid, its lower edge sits low over the pupil
+        out.append(P(f"M{xi-side*1.5},{ey+0.3} Q{x},{ey-5.5} {xo+side*1.8},{ey+droop+0.6} "
+                     f"L{xo+side*1.2},{ey+droop-1+lid*0.55} Q{x},{ey-3.2+lid} {xi-side*1},{ey-0.8+lid*0.55} Z", INK))
+        # lid crease (heavy, sleepy)
+        out.append(f'<path d="M{xi},{ey-6} Q{x},{ey-10} {xo+side*2},{ey-3+droop}" stroke="{SKIN_SH}" stroke-width="1.8" fill="none"/>')
+        # puffy under-eye (tear trough) + bag
+        out.append(f'<path d="M{xi+side*1},{ey+5} Q{x},{ey+8.5} {xo},{ey+droop+3.5}" stroke="{SKIN_SH}" stroke-width="1.6" fill="none"/>')
+        out.append(f'<path d="M{xi+side*3},{ey+10} Q{x},{ey+13} {xo-side*2},{ey+droop+8}" stroke="{SKIN_SH}" stroke-width="1.2" fill="none" opacity=".7"/>')
     return "".join(out)
 
 
@@ -46,17 +49,26 @@ def brows(cx, by, sep, w, mode="blank"):
         x = cx + side * sep
         inner = x - side * w / 2
         outer = x + side * w / 2
-        tilt = {"blank": 0, "distant": -3.0, "glance": 1.5, "resolve": 6.0}[mode]
-        out.append(P(f"M{inner},{by+tilt} L{outer},{by-1} L{outer},{by+3} L{inner},{by+tilt+4.5} Z", INK))
+        tilt = {"blank": -1.0, "distant": -3.0, "glance": 1.0, "resolve": 5.0}[mode]
+        lift = -4.0 if (mode in ("blank", "glance") and side == 1) else 0.0  # one brow cocked
+        out.append(P(f"M{inner},{by+tilt+lift} Q{x},{by-3+lift} {outer},{by+1.5+lift} L{outer},{by+5+lift} Q{x},{by+0.5+lift} {inner},{by+tilt+4.5+lift} Z", INK))
     return "".join(out)
 
 
 def mouth(cx, my, w, mode="blank"):
-    if mode == "resolve":
-        return f'<path d="M{cx-w/2},{my} L{cx+w/2},{my-1}" stroke="{INK}" stroke-width="3" stroke-linecap="round"/>'
-    curve = {"blank": 1.5, "distant": 2.5, "glance": 1.0}[mode]
-    return (f'<path d="M{cx-w/2},{my} Q{cx},{my-curve} {cx+w/2},{my+0.5}" stroke="{INK}" stroke-width="2.6" '
-            f'fill="none" stroke-linecap="round"/>')
+    """Fuller lower lip, one corner up (a knowing half-smile), mole by the mouth."""
+    up = {"blank": 4.5, "distant": 0.5, "glance": 7.0, "resolve": 5.5}[mode]
+    out = []
+    # lower lip volume
+    out.append(P(f"M{cx-w*0.34},{my+2.5} Q{cx},{my+12} {cx+w*0.32},{my+1.5} Q{cx},{my+5} {cx-w*0.34},{my+2.5} Z", SKIN_SH, 'opacity=".95"'))
+    # smile line on the raised side
+    if up > 3:
+        out.append(f'<path d="M{cx+w*0.62},{my-14} Q{cx+w*0.72},{my-4} {cx+w*0.58},{my+3}" stroke="{SKIN_SH}" stroke-width="1.8" fill="none"/>')
+    if mode == "distant":
+        out.append(f'<ellipse cx="{cx}" cy="{my+0.5}" rx="{w*0.16}" ry="1.6" fill="{INK}"/>')
+    out.append(f'<path d="M{cx-w/2},{my+1} Q{cx-w*0.05},{my+2.2} {cx+w/2},{my-up}" stroke="{INK}" stroke-width="2.6" fill="none" stroke-linecap="round"/>')
+    out.append(f'<circle id="mole" cx="{cx+w*0.66}" cy="{my+7}" r="3" fill="{INK}"/>')
+    return "".join(out)
 
 
 # ---------------------------------------------------------------- head (front)
@@ -87,7 +99,7 @@ def head_front(cx, top, H, W, jaw="long", mode="blank", light="right"):
     # stubble
     s.append(P(f"M{cx-hw*0.92},{jaw_y-4} C{cx-hw*0.8},{chin-2} {cx-hw*0.4},{chin+1} {cx},{chin+1} "
                f"C{cx+hw*0.4},{chin+1} {cx+hw*0.8},{chin-2} {cx+hw*0.92},{jaw_y-4} "
-               f"C{cx+hw*0.6},{mouth_y+8} {cx-hw*0.6},{mouth_y+8} {cx-hw*0.92},{jaw_y-4} Z", MID, 'opacity="0.45"'))
+               f"C{cx+hw*0.6},{mouth_y+8} {cx-hw*0.6},{mouth_y+8} {cx-hw*0.92},{jaw_y-4} Z", MID, 'opacity="0.62"'))
     # noir side shadow (light from the side given)
     sgn = -1 if light == "right" else 1
     edge = cx + sgn * hw
@@ -100,6 +112,8 @@ def head_front(cx, top, H, W, jaw="long", mode="blank", light="right"):
     # nose
     s.append(f'<g id="nose"><path d="M{cx+2},{eye_y+3} L{cx-3},{eye_y+H*0.2} L{cx+5},{eye_y+H*0.22}" '
              f'stroke="{INK}" stroke-width="2" fill="none" stroke-linejoin="round" stroke-linecap="round"/></g>')
+    s.append(f'<g id="sheen"><ellipse cx="{cx+W*0.06}" cy="{eye_y+H*0.17}" rx="{W*0.025}" ry="{H*0.02}" fill="#F4F2EE" opacity=".8"/>'
+             f'<ellipse cx="{cx+W*0.14}" cy="{brow_y-H*0.08}" rx="{W*0.07}" ry="{H*0.012}" fill="#F4F2EE" opacity=".45"/></g>')
     s.append(f'<g id="brows">{brows(cx, brow_y, W*0.22, W*0.26, mode)}</g>')
     s.append(f'<g id="eyes">{eyes(cx, eye_y, W*0.22, W*0.25, mode)}</g>')
     s.append(f'<g id="mouth">{mouth(cx, mouth_y, W*0.3, mode)}</g>')
@@ -156,9 +170,15 @@ def body_front(cx, top, H, W, heads=7.5, shoulder=2.3, coat_len=0.63, jaw="long"
     # opening: suit, shirt, loosened tie
     open_bottom = sh_y + H * 1.75
     s.append(P(f"M{cx-W*0.2},{neck_top+H*0.3} L{cx+W*0.2},{neck_top+H*0.3} L{cx+W*0.12},{open_bottom} L{cx-W*0.08},{open_bottom} Z", SHADOW))
-    s.append(P(f"M{cx-W*0.12},{neck_top+H*0.28} L{cx+W*0.14},{neck_top+H*0.28} L{cx+W*0.02},{neck_top+H*0.95} Z", PAPER))
-    s.append(P(f"M{cx-W*0.02},{neck_top+H*0.42} L{cx+W*0.09},{neck_top+H*0.42} L{cx+W*0.1},{neck_top+H*0.52} "
-               f"L{cx+W*0.13},{open_bottom-H*0.25} L{cx+W*0.04},{open_bottom-H*0.1} L{cx-W*0.02},{open_bottom-H*0.28} L{cx+W*0.0},{neck_top+H*0.52} Z", INK, 'id="tie"'))
+    s.append(P(f"M{cx-W*0.15},{neck_top+H*0.26} L{cx+W*0.17},{neck_top+H*0.26} L{cx+W*0.03},{neck_top+H*1.05} Z", PAPER))
+    # open collar: skin V and a hint of chest hair
+    s.append(P(f"M{cx-W*0.08},{neck_top+H*0.27} L{cx+W*0.1},{neck_top+H*0.27} L{cx+W*0.01},{neck_top+H*0.7} Z", SKIN_SH))
+    for i in range(5):
+        hx = cx - W * 0.03 + (i % 3) * W * 0.03
+        hy = neck_top + H * (0.4 + 0.05 * i)
+        s.append(f'<path d="M{hx},{hy} q2,-3 4,0" stroke="{INK}" stroke-width="1.2" fill="none" opacity=".55"/>')
+    s.append(P(f"M{cx-W*0.02},{neck_top+H*0.74} L{cx+W*0.09},{neck_top+H*0.74} L{cx+W*0.1},{neck_top+H*0.84} "
+               f"L{cx+W*0.13},{open_bottom-H*0.25} L{cx+W*0.04},{open_bottom-H*0.1} L{cx-W*0.02},{open_bottom-H*0.28} L{cx+W*0.0},{neck_top+H*0.84} Z", INK, 'id="tie"'))
     # coat front edge overlap line + buttons (single, hidden placket)
     s.append(f'<path d="M{cx+W*0.12},{open_bottom} L{cx+W*0.06},{hem_y}" stroke="{MID}" stroke-width="2.4"/>')
     # pockets
