@@ -2,7 +2,7 @@
 # Actions → render → Run workflow → 話数（例: 001）
 # 出力は Artifacts の「<no>-<slug>」に mp4・投稿用JSON・upload.txt・still.jpg。
 # 「書き出したあと」で、ちんすけのチャンネルへ直接投稿するか、Driveの予約キューへ入れるかを選ぶ。
-# 直接投稿は secrets の GOOGLE_SERVICE_ACCOUNT_JSON・GOOGLE_CLIENT_ID・GOOGLE_CLIENT_SECRET が要る（video-publisherと同じ値）。
+# 直接投稿は secrets の GOOGLE_SERVICE_ACCOUNT_JSON と GOOGLE_CLIENT_JSON が要る（video-publisherと同じ値）。
 # vo/ が揃っていない話は VOICEVOX を起動して声から作る。
 name: render
 on:
@@ -57,6 +57,7 @@ jobs:
           GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_CLIENT_JSON: ${{ secrets.GOOGLE_CLIENT_JSON }}
           MODE: ${{ inputs.post }}
           EP: productions/${{ inputs.episode }}
         run: |

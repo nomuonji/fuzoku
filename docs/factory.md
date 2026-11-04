@@ -47,7 +47,7 @@
 ## 投稿（video-publisher）
 
 - 投稿先は `publish.json`（Driveの `v-stock` の下の `ちんすけ`）。投稿の時刻と、YouTube以外のSNSにも出すかどうかは、video-publisher 側の「ちんすけ」の設定（config.json）が決める
-- 直接投稿（`tools/youtube.py`）は動画をDriveに置かない。ちんすけのチャンネルの認証（リフレッシュトークン）だけを config.json から読み、OAuthクライアントは secret の `GOOGLE_CLIENT_ID`・`GOOGLE_CLIENT_SECRET`（video-publisher と同じ値）を使う
+- 直接投稿（`tools/youtube.py`）は動画をDriveに置かない。ちんすけのチャンネルの認証（リフレッシュトークン）だけを config.json から読み、OAuthクライアントは secret の `GOOGLE_CLIENT_JSON`（video-publisher と同じクライアントのJSON）を使う
 - Driveに手で入れても投稿される。そのときは同名のJSONを横に置かないと、ちんすけ共通のタイトル・概要欄で出る
 - 認証は video-publisher と同じサービスアカウント。fuzoku の Actions には secret `GOOGLE_SERVICE_ACCOUNT_JSON` を入れておく
 - `aiLabel`（`publish.json` の `ai_label`）は true。チラシに実写風のAI画像を使っているので、YouTubeの「改変・合成コンテンツ」の申告を付ける

@@ -6,7 +6,7 @@
 チャンネルの認証は video-publisher と共用：
   - リフレッシュトークン … Driveの v-stock/ちんすけ/config.json の apiKeys.youtube_refresh_token
     （サービスアカウント GOOGLE_SERVICE_ACCOUNT_JSON で読むだけ。動画はDriveに置かない）
-  - OAuthクライアント … 環境変数 GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET
+  - OAuthクライアント … 環境変数 GOOGLE_CLIENT_JSON（GCPのクライアントJSONそのまま）か GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET
     （video-publisher の同名secretと同じ値。トークンを発行したクライアントでないと更新できない）
 タイトル・概要欄は out/<no>-<slug>.json（make.py が作るもの）を使う。
 投稿したら episode.json に youtube_id・published を書き、status を published にする。
@@ -40,12 +40,13 @@ def client_creds():
     cid, sec = os.environ.get("GOOGLE_CLIENT_ID"), os.environ.get("GOOGLE_CLIENT_SECRET")
     if cid and sec:
         return cid, sec
-    raw = os.environ.get("GOOGLE_OAUTH_CLIENT_JSON")  # {"web": {...}} / {"installed": {...}} をそのまま入れてもよい
+    # GCPのOAuthクライアントJSON（{"web": {...}} / {"installed": {...}}）をそのまま入れてもよい
+    raw = os.environ.get("GOOGLE_CLIENT_JSON") or os.environ.get("GOOGLE_OAUTH_CLIENT_JSON")
     if raw:
         j = json.loads(raw)
         j = j.get("web") or j.get("installed") or j
         return j["client_id"], j["client_secret"]
-    sys.exit("GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET が無い")
+    sys.exit("GOOGLE_CLIENT_JSON（または GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET）が無い")
 
 
 def main():
