@@ -30,6 +30,7 @@
 | 風俗チラシ（静止画3枚） | `assets/flyers/` |
 | BGM | `assets/bgm/signs-to-nowhere.mp3`（CC BY 4.0。クレジットは `make.py` が概要欄に入れる） |
 | 声 | VOICEVOX 青山龍星「しっとり」（style 84）。設定は `episode.json` の `voice` |
+| 環境音・効果音の追加候補／音の確認（任意） | Openverse（CC素材検索）と earshot（音の測定・コード製効果音）。[asset-sources.md](https://github.com/nomuonji/animation-factory/blob/main/docs/asset-sources.md)。注意は `AGENTS.md`「参照」 |
 | 書き出し設定 | 1080×1920、30fps、H.264 crf25、音量 -14 LUFS |
 
 ## episode.json
