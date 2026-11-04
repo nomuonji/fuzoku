@@ -1,0 +1,18 @@
+{
+  "no": "NO",
+  "slug": "SLUG",
+  "title": "題",
+  "status": "draft",
+  "scene": "場面を一文で（chonmage-ja の /souda/ に出る）",
+  "line": "言語化の一行（chonmage-ja の /souda/ に出る）",
+  "escape": "yumeoto",
+  "still_time": null,
+  "voice": {"speaker": 84, "speed": 1.0, "pitch": -0.04, "intonation": 0.85},
+  "youtube": {
+    "title": "タイトル（「風俗」を入れない）",
+    "description": "概要欄。リンク・店名・料金・誘導は書かない\n\nくだらない世界 #NO",
+    "hashtags": ["#くだらない世界", "#ハードボイルド", "#Shorts"]
+  },
+  "youtube_id": "",
+  "published": ""
+}

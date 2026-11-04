@@ -46,9 +46,12 @@
 - 例外：風俗チラシの写真（2026-11-04 Yuto指示）。女性は動かさず、電柱などに貼られた**静止画のチラシ**としてだけ使う。白黒・暗く・粒子・雨染みで動画のトーンに合わせる。写真の上の料金・店名・指名・営業時間などの文字は切り落とすか読めなくする。下着姿の強調は避け、顔から胸元までで切る。幼く見える小道具（ぬいぐるみ等）が写ったものは使わない。素材は `assets/flyers/`
 - 声：VOICEVOX 青山龍星「しっとり」（style 84）
 - YouTubeで何も売らない：店名・料金・サービス内容・リンクを出さない。タイトルとサムネに「風俗」を入れない
+- 誘導の受け皿は chonmage-ja の `/souda/`（2026-11-04 Yuto決定）。ただしYouTube側から chonmage-ja・ユメオト・デリスへは、リンクも名前も口頭の誘導も出さない。つながりは chonmage-ja → YouTube の一方向だけ（詳しくは `docs/factory.md`「公開と誘導」）
 - 画はモノクロ、色はオチのネオン（#FF2E88）だけ
 
 ## 参照
+
+- **制作の流れ・コマンド：`docs/factory.md`**（新しい話は `python tools/new_episode.py <話数> <slug>` から）
 
 - シリーズの決めごと：`docs/series-bible.md`
 - 空虚さの根拠（台詞に使わない）：`docs/research/advanced-capitalism-emptiness.md`

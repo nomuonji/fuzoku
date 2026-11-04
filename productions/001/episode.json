@@ -1,0 +1,18 @@
+{
+  "no": "001",
+  "slug": "selfregi",
+  "title": "セルフレジ",
+  "status": "ready",
+  "scene": "二十三時十四分、深夜のスーパー。有人レジにはもう鎖が掛かっている。",
+  "line": "省かれたのは、手間じゃない。手だ。",
+  "escape": "yumeoto",
+  "still_time": 56.4,
+  "voice": {"speaker": 84, "speed": 1.0, "pitch": -0.04, "intonation": 0.85},
+  "youtube": {
+    "title": "セルフレジで、今日いちばん人肌に近かったもの。",
+    "description": "二十三時十四分。有人レジには、もう鎖が掛かっている。\n手間が省けた、と世の中は言う。\n\nくだらない世界 #001",
+    "hashtags": ["#くだらない世界", "#ハードボイルド", "#セルフレジ", "#Shorts"]
+  },
+  "youtube_id": "",
+  "published": ""
+}
