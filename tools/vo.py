@@ -10,9 +10,10 @@ import json, pathlib, subprocess, sys, tempfile, urllib.parse, urllib.request
 
 API = "http://127.0.0.1:50021"
 DEFAULT = {"speaker": 84, "speed": 1.0, "pitch": -0.04, "intonation": 0.85, "volume": 1.0}
-# 声の加工：低域を切る→軽く圧縮→ごく短い残響。ナレーションを部屋の中に置く
-FX = "highpass=f=70,equalizer=f=220:t=q:w=1.2:g=2,equalizer=f=3200:t=q:w=1.5:g=-1.5," \
-     "acompressor=threshold=-20dB:ratio=2.5:attack=8:release=120,aecho=0.8:0.4:35:0.08"
+# 声の加工：聞き取りやすさ優先（2026-11-04「もそもそして聴きづらい」を受けて変更）
+#   低域を切る → こもり（250Hz）を削る → 子音の帯域（3〜5kHz）を持ち上げる → 軽く圧縮。残響は付けない
+FX = "highpass=f=95,equalizer=f=250:t=q:w=1.0:g=-3.5,equalizer=f=3500:t=q:w=1.2:g=3.5," \
+     "highshelf=f=7000:g=2,acompressor=threshold=-22dB:ratio=3:attack=5:release=90:makeup=2"
 
 
 def tts(text, v):

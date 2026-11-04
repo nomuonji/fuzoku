@@ -167,8 +167,11 @@ const SCN = {
   `<g transform="translate(${hx} 1000)"><path d="M0 0 C20 -18 60 -20 90 -8 L520 40 L520 140 L80 90 C40 86 10 60 0 40 Z" fill="#2a2a2e"/>
   <path d="M-80,-6 C-55,-24 -10,-20 6,-2 L18,36 C0,62 -36,62 -62,48 L-96,36 C-112,26 -104,0 -80,-6 Z" fill="${SK}"/>
   <path d="M-80,-6 L-170,-2 C-186,2 -186,18 -170,20 L-86,20 Z" fill="${SK}"/><path d="M-60,40 L-140,52 C-152,56 -150,68 -138,68 L-58,58 Z" fill="${SK}"/></g>`,1.95+0.25*ease(k),380,1040,170,-60))},
- black:(t,k)=>{const y=lerp(300,1700,k);return full(`<rect width="1080" height="1920" fill="#050506"/><rect x="0" y="${y}" width="1080" height="${lerp(40,6,k)}" fill="#e9e6df" opacity="${0.5*(1-k)}"/>
-  <rect x="0" y="${(y+700)%1920}" width="1080" height="3" fill="#e9e6df" opacity=".25"/>`)},
+ black:(t,k,t0)=>{const d=t-t0;const y=lerp(300,1700,Math.min(1,d/0.35));const o=lerp(0,1,(d-0.15)/0.2)*lerp(1,0,(d-1.0)/0.25);
+  return full(`<rect width="1080" height="1920" fill="#050506"/><rect x="0" y="${y}" width="1080" height="${lerp(40,6,d/0.35)}" fill="#e9e6df" opacity="${0.5*Math.max(0,1-d/0.35)}"/>
+  <g opacity="${o}"><text x="540" y="900" text-anchor="middle" font-family="Noto Serif CJK JP" font-size="92" font-weight="700" letter-spacing="28" fill="#ece9e2">くだらない世界</text>
+  <line x1="380" y1="975" x2="700" y2="975" stroke="#77777d" stroke-width="2"/>
+  <text x="540" y="1060" text-anchor="middle" font-family="Noto Serif CJK JP" font-size="48" letter-spacing="10" fill="#b4b2ac">#${TL.no}　${TL.title}</text></g>`)},
  neon:(t,k)=>full(`<rect width="1080" height="1920" fill="#0b0b0d"/><g opacity=".55">${rain(t,70,.3,90,0.1,1000,2)}</g>`)
 };
 function render(t){

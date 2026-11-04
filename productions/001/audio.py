@@ -69,7 +69,7 @@ TE = tl["teaser_end"]
 vo = np.zeros(N)
 for k, s, d in tl["vo"]:
     x = load(D / f"vo_fast/{k}.wav")
-    x = norm_rms(x, -18)
+    x = norm_rms(x, -16)
     place(vo, x, s)
 
 # ---------- BGM (Signs To Nowhere) with ducking under narration
@@ -77,7 +77,9 @@ bgm = load(D / "bgm.mp3")[: N]
 bgm = np.pad(bgm, (0, max(0, N - len(bgm))))
 bgm = norm_rms(bgm, -27)
 vo_env = np.convolve(np.abs(vo) > 0.003, np.ones(int(SR * 0.25)) / (SR * 0.25), mode="same")
-duck = 1 - 0.45 * np.clip(vo_env * 3, 0, 1)
+duck = 1 - 0.7 * np.clip(vo_env * 3, 0, 1)
+# 声の下では、こもった環境音（店内の雨・蛍光灯）も下げる。声の帯域を空けるため
+amb_duck = 1 - 0.6 * np.clip(vo_env * 3, 0, 1)
 bgm_level = ramp([(0, 0.6), (TE, 0.6), (TE + 0.05, 0), (TE + 0.5, 0), (TE + 1.2, 1), (EV["heels"] - 2.5, 1), (EV["heels"] - 0.1, 0.0), (DUR, 0)])
 bgm = bgm * duck * bgm_level
 
@@ -159,6 +161,8 @@ low = sum((1 / (h ** 1.3)) * np.sin(2 * np.pi * 55 * h * tt) * np.exp(-tt / (2.2
 low *= np.minimum(1, np.arange(n) / (SR * 0.006))
 place(sfx, low, EV["low"], db(-15))
 
+hum = hum * amb_duck
+rain = rain * amb_duck
 mix = vo + bgm + hum + rain + sfx
 # gentle bus limiter
 peak = np.max(np.abs(mix))

@@ -27,6 +27,11 @@ def main():
     ep = pathlib.Path(sys.argv[1]).resolve()
     audio_only = "--audio" in sys.argv
     workers = int(os.environ.get("WORKERS", max(2, (os.cpu_count() or 2) * 2)))
+    # QUALITY=draft は確認用（1080p・速い・粗い）。既定は公開用（1440p・crf16・slow）
+    draft = os.environ.get("QUALITY") == "draft"
+    env = dict(os.environ, SCALE="1" if draft else os.environ.get("SCALE", str(4 / 3)),
+               JPEG_Q="90" if draft else os.environ.get("JPEG_Q", "95"))
+    enc = ["-preset", "veryfast", "-crf", "25"] if draft else ["-preset", "slow", "-crf", "16"]
     meta = json.loads((ep / "episode.json").read_text())
     name = f"{meta['no']}-{meta['slug']}"
     lines = json.loads((ep / "lines.json").read_text())
@@ -47,7 +52,7 @@ def main():
         for f in frames.glob("*.jpg"):
             f.unlink()
         step = -(-n // workers)
-        procs = [subprocess.Popen([sys.executable, "render_frames.py", str(a), str(min(a + step, n))], cwd=ep)
+        procs = [subprocess.Popen([sys.executable, "render_frames.py", str(a), str(min(a + step, n))], cwd=ep, env=env)
                  for a in range(0, n, step)]
         if any(p.wait() for p in procs):
             sys.exit("render failed")
@@ -58,7 +63,7 @@ def main():
     out.mkdir(exist_ok=True)
     mp4 = out / f"{name}.mp4"
     run("ffmpeg", "-v", "error", "-y", "-framerate", FPS, "-i", "frames/%05d.jpg", "-i", "mix.wav",
-        "-c:v", "libx264", "-preset", "veryfast", "-crf", "25", "-pix_fmt", "yuv420p",
+        "-c:v", "libx264", *enc, "-pix_fmt", "yuv420p", "-movflags", "+faststart",
         "-af", "loudnorm=I=-14:TP=-1.5", "-c:a", "aac", "-b:a", "192k", "-shortest", mp4, cwd=ep)
 
     st = meta.get("still_time")

@@ -51,7 +51,7 @@ end = say(8, 0.45, 0.25)
 subs[-1][2] = "次は、わざと\n間違えようかと思った。"
 shots.append([0.0, end, "teaser"])
 ev["rewind"] = end
-t = end + 0.35                      # black + rewind hiss
+t = end + 1.25                      # 暗転＋巻き戻しの音＋シリーズ名（何の動画かをここで示す）
 shots.append([end, t, "black"])
 
 # ---- story
@@ -90,7 +90,8 @@ ev["neon"] = t
 ev["low"] = t + 0.65
 shots.append([t, t + 3.2, "neon"]); t += 3.2
 
-tl = {"total": round(t, 3), "vo": vo, "shots": [[round(a, 3), round(b, 3), n] for a, b, n in shots],
+meta = json.loads((D / "episode.json").read_text())
+tl = {"no": meta["no"], "title": meta["title"], "total": round(t, 3), "vo": vo, "shots": [[round(a, 3), round(b, 3), n] for a, b, n in shots],
       "events": [[k, round(v, 3)] for k, v in ev.items()], "subs": subs, "teaser_end": round(end, 3)}
 (D / "timeline.json").write_text(json.dumps(tl, ensure_ascii=False, indent=1))
 print("total", tl["total"])
