@@ -4,6 +4,7 @@ tools/cards/_*.html
 productions/*/frames/
 productions/*/grain/
 productions/*/ep001.html
+productions/*/ep.html
 productions/*/mix.wav
 productions/*/bgm/
 *.mp4

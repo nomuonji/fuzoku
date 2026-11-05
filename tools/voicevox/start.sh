@@ -5,6 +5,7 @@
 #     （Docker Hub が 429 を返す環境向け。取り出し先は $VV_DIR、既定 ~/.voicevox）
 set -euo pipefail
 PORT=50021
+HERE="$(dirname "$(readlink -f "$0")")"
 if curl -sf "http://127.0.0.1:$PORT/version" >/dev/null; then echo "already running"; exit 0; fi
 
 if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
@@ -13,7 +14,7 @@ else
   VV_DIR="${VV_DIR:-$HOME/.voicevox}"
   ENGINE="$VV_DIR/root/opt/voicevox_engine"
   if [ ! -x "$ENGINE/run" ]; then
-    mkdir -p "$VV_DIR" && (cd "$VV_DIR" && python3 "$(dirname "$(readlink -f "$0")")/pull.py" cpu-latest)
+    mkdir -p "$VV_DIR" && (cd "$VV_DIR" && python3 "$HERE/pull.py" cpu-latest)
   fi
   (cd "$ENGINE" && nohup ./run --host 127.0.0.1 --port $PORT > "$VV_DIR/engine.log" 2>&1 &)
 fi
