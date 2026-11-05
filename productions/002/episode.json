@@ -2,7 +2,7 @@
   "no": "002",
   "slug": "hotel",
   "title": "ビジネスホテル",
-  "status": "ready",
+  "status": "published",
   "scene": "二十三時四十一分、出張先のビジネスホテル。フロントの明かりは二十二時で消え、機械だけが「おかえりなさいませ」と言う。",
   "line": "機械は、おかえりとは言う。誰も、待ってはいない。",
   "escape": "delice",
@@ -23,6 +23,6 @@
       "#Shorts"
     ]
   },
-  "youtube_id": "",
-  "published": ""
+  "youtube_id": "JdaW2HFGXEE",
+  "published": "2026-11-05"
 }
