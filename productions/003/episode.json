@@ -2,7 +2,7 @@
   "no": "003",
   "slug": "kasa",
   "title": "ビニール傘",
-  "status": "ready",
+  "status": "published",
   "scene": "二十三時八分、駅を出たら雨。降り出して五分で、駅前のコンビニの入口にはもう傘が立っている。玄関には同じのが六本ある。",
   "line": "店が待っていたのは、雨じゃない。傘を持たずに出る、俺だ。",
   "escape": "yumeoto",
@@ -23,6 +23,6 @@
       "#Shorts"
     ]
   },
-  "youtube_id": "",
-  "published": ""
+  "youtube_id": "RoHVsF5zNks",
+  "published": "2026-11-06"
 }
