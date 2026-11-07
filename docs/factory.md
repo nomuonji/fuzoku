@@ -14,6 +14,7 @@
 | 6 | 画と秒数 | `build_timeline.py`（秒数・字幕・効果音のきっかけ）と `scene.py`（場面ごとの画）を書き換える。雛形は #001 のコード | |
 | 7 | 書き出し | `python tools/make.py productions/002`（手元）か、Actions の **render** を手動実行 | 書き出した動画を自分で見る。コマ送りで字幕の折り返しと画の切れ目を確認 |
 | 8 | 投稿する | **直接**：`python tools/youtube.py productions/002`（`--private` で非公開の確認投稿）か、Actions の **render** で「今すぐ投稿」。**予約**：`python tools/drive.py send productions/002` か render で「ちんすけの予約キューへ」。Driveの `v-stock/ちんすけ/queue` に動画と同名のJSON（タイトル・概要欄・ハッシュタグ）が入り、video-publisher が予定の時刻に投稿する | 送る前に `out/002-*.json` のタイトルと概要欄を見る |
+| 8.5 | TikTok にも出す | YouTube に公開したら `python tools/tiktok.py productions/002 ../video-publisher`。動画を TikTok 用に詰め直して video-publisher の `incoming/fuzoku-<話数>-<日付>` ブランチに置き、Queue From Repo が Buffer 経由で TikTok（`chinsukedt`）に出す。episode.json に `tiktok.requested` が入る（二重に出さない）。結果は video-publisher の Queue From Repo のログで確かめる | 2026-11-07 Yuto指示 |
 | 9 | 公開済みにする | Actions の **collect**（1日2回自動）が `posted` のJSONから YouTube ID を読み、`episode.json` を `published` にする。手元なら `python tools/drive.py collect` | |
 | 10 | 受け皿に載せる | `python tools/sync_chonmage.py ../chonmage-ja` → chonmage-ja で build → push | |
 
@@ -71,5 +72,6 @@
 - **聞き取りテスト（2026-11-07 Yuto指示、#004「poetic過ぎて何の話か分からない」を受けて）**：`script.md` に中学生向けの二文要約を書き、台詞だけで通じるか確かめる。最初の10秒で何の場面かを声で言い切る。説明は4〜6行の普通の話し言葉。尺は75〜90秒（台詞16〜22行）。60秒に収めるために説明を削らない（AGENTS.md「分かりやすさ」）
 - 書き出しは先に `QUALITY=draft` で通し、要所のコマを並べて目で確かめる（字幕の折り返し、画の切れ目、先出し・シリーズ名・チラシ・ネオン）
 - **投稿は依頼ファイルの push で行う（2026-11-07 Yuto指示）。** Actions を直接起動せず、`productions/<話数>/post-request.json` に `{"post": "公開"}` を書いて main に commit・push する。`post-on-push` ワークフローが render を回して投稿し、episode.json に youtube_id を書き戻す。`"非公開"` `"書き出しだけ"` `"予約キュー"` も使える。youtube_id が入っている話は投稿されない。結果は Actions の post-on-push の実行ログ（「公開で投稿：」）で拾う
+- **YouTube に公開できたら TikTok にも出す（2026-11-07 Yuto指示）。** fuzoku を pull して `python tools/tiktok.py productions/<話数> ../video-publisher`（video-publisher も push 権限でクローンしておく）。episode.json の変更（`tiktok`）を fuzoku の main に commit・push する。video-publisher の Queue From Repo の実行ログから「TikTok ちんすけ/… → Buffer …」を拾う。TikTok だけ失敗しても YouTube は出し直さない。理由を報告する
 - 声・画・投稿のどこかで失敗したら、公開しない。直せなければ非公開で上げるか、何も上げずに報告する
 - YouTube側に chonmage-ja・ユメオト・デリスの名前やリンクを絶対に出さない。タイトルとサムネに「風俗」を入れない
