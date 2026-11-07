@@ -1,0 +1,57 @@
+# 投稿依頼ファイルを main に push すると、render を回して投稿する（2026-11-07 Yuto指示）。
+# 毎日の予約実行は Actions を直接起動せず、このファイルを commit・push するだけにする。
+#
+#   productions/<話数>/post-request.json  →  {"post": "公開"}
+#   post は "公開" / "非公開" / "書き出しだけ" / "予約キュー" のどれか
+#
+# 二重投稿の防止：episode.json に youtube_id が入っている話は投稿しない（tools/youtube.py も同じ所で止まる）。
+# Actions の bot が push したコミットではこのワークフローは動かない（GITHUB_TOKEN の仕様）。ループしない。
+name: post-on-push
+on:
+  push:
+    branches: [main]
+    paths: ["productions/*/post-request.json"]
+permissions:
+  contents: write
+jobs:
+  find:
+    runs-on: ubuntu-latest
+    outputs:
+      episode: ${{ steps.f.outputs.episode }}
+      post: ${{ steps.f.outputs.post }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - id: f
+        env:
+          BEFORE: ${{ github.event.before }}
+        run: |
+          python3 - <<'PY'
+          import json, os, pathlib, subprocess
+          before = os.environ["BEFORE"]
+          rng = f"{before}..HEAD" if before.strip("0") else "HEAD~1..HEAD"
+          names = subprocess.run(["git", "diff", "--name-only", rng], capture_output=True, text=True).stdout.split()
+          reqs = sorted(n for n in names if n.endswith("/post-request.json") and pathlib.Path(n).exists())
+          MODES = {"公開": "今すぐ投稿（公開）", "非公開": "今すぐ投稿（非公開で確認）",
+                   "書き出しだけ": "書き出しだけ", "予約キュー": "ちんすけの予約キューへ"}
+          if not reqs:
+              print("投稿依頼なし"); raise SystemExit
+          req = pathlib.Path(reqs[-1]); ep = req.parent
+          mode = MODES.get(json.loads(req.read_text()).get("post", ""))
+          if not mode:
+              print(f"不明な post: {req.read_text()}"); raise SystemExit(1)
+          meta = json.loads((ep / "episode.json").read_text())
+          if meta.get("youtube_id") and mode != "書き出しだけ":
+              print(f"#{meta['no']} は投稿済み（{meta['youtube_id']}）。投稿しない"); raise SystemExit
+          print(f"依頼: #{ep.name} → {mode}")
+          with open(os.environ["GITHUB_OUTPUT"], "a") as out:
+              out.write(f"episode={ep.name}\npost={mode}\n")
+          PY
+  render:
+    needs: find
+    if: ${{ needs.find.outputs.episode != '' }}
+    uses: ./.github/workflows/render.yml
+    with:
+      episode: ${{ needs.find.outputs.episode }}
+      post: ${{ needs.find.outputs.post }}
+    secrets: inherit

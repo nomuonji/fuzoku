@@ -17,6 +17,11 @@ on:
         type: choice
         options: [書き出しだけ, 今すぐ投稿（公開）, 今すぐ投稿（非公開で確認）, ちんすけの予約キューへ]
         default: 書き出しだけ
+  # post-on-push.yml から呼ばれる（予約実行は投稿依頼ファイルを push するだけ。2026-11-07 Yuto指示）
+  workflow_call:
+    inputs:
+      episode: { type: string, required: true }
+      post: { type: string, required: true }
 permissions:
   contents: write
 jobs:
