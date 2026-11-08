@@ -24,5 +24,10 @@
     ]
   },
   "youtube_id": "a32celNEJaY",
-  "published": "2026-11-08"
+  "published": "2026-11-08",
+  "tiktok": {
+    "account": "chinsukedt",
+    "requested": "2026-11-08",
+    "branch": "incoming/fuzoku-005-2026-11-08"
+  }
 }
