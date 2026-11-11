@@ -19,6 +19,8 @@ FX = "highpass=f=95,equalizer=f=250:t=q:w=1.0:g=-3.5,equalizer=f=3500:t=q:w=1.2:
 def tts(text, v):
     q = json.load(urllib.request.urlopen(urllib.request.Request(
         f"{API}/audio_query?speaker={v['speaker']}&text=" + urllib.parse.quote(text), method="POST")))
+    # Preserve the actual phonetic reading from VOICEVOX for review (not just the input text).
+    print(f"audio_query.kana: {q.get('kana', '')}", flush=True)
     q.update(speedScale=v["speed"], pitchScale=v["pitch"], intonationScale=v["intonation"],
              volumeScale=v["volume"], prePhonemeLength=0.05, postPhonemeLength=0.1, outputSamplingRate=48000)
     return urllib.request.urlopen(urllib.request.Request(
