@@ -2,7 +2,7 @@
   "no": "006",
   "slug": "shokugo",
   "title": "食後のアンケート",
-  "status": "draft",
+  "status": "published",
   "scene": "二十三時二十七分、駅前の食堂で千二百三十円の夕飯を食べ終えた男が、レシートのQRから次回三十円引きのアンケートに答えている。",
   "line": "俺は三十円引きを受け取り、店は俺の感想と次の来店を受け取っている。",
   "escape": "delice",
@@ -23,6 +23,6 @@
       "#Shorts"
     ]
   },
-  "youtube_id": "",
-  "published": ""
+  "youtube_id": "RQEnLpfSdcA",
+  "published": "2026-11-11"
 }
