@@ -55,22 +55,30 @@ def shot(name, k, lead=0.14, tail=0.16):
     t = end
     return start
 
-# 実験フラグ（docs/experiments.md）。episode.json の variant.opening_card が false なら、
-# 先出しのあとのシリーズ名カード（黒地のネオン）を出さず、短い暗転だけで本編へ入る。
-# 無いときは従来どおりカードを出す（#001〜#008 の再現のため）。
+# 実験フラグ（docs/experiments.md）。episode.json の variant で冒頭の作りを切り替える。
+#   opening = "direct"   … 先出しの一言から巻き戻し・暗転・シリーズ名カードなしで本編へ続ける（E1、2026-11-13〜）
+#   opening_card = false … 先出しのあと、シリーズ名カードを出さず短い暗転だけで本編へ（旧E2案）
+#   どちらも無いとき       … 従来（先出し→巻き戻し→シリーズ名カード→本編。#001〜#008 の再現のため）
+# 実測（api-d2の維持率）：離脱は先出し→カード→本編の切り替わり5〜10秒に集中していた。
 _meta = json.loads((D / "episode.json").read_text())
-OPENING_CARD = _meta.get("variant", {}).get("opening_card", True)
+_var = _meta.get("variant", {})
+DIRECT = _var.get("opening") == "direct"
+OPENING_CARD = False if DIRECT else _var.get("opening_card", True)
 
-# The teaser: the quit-your-phone video opening on an ad.
+# The teaser: the strongest line first.
 teaser_end = say(0, 0.18, 0.12)
-shots.append([0.0, round(max(3.0, teaser_end), 3), "teaser"])
-events.append(["rewind", round(max(3.0, teaser_end), 3)])
-if OPENING_CARD:
-    t = max(3.0, teaser_end) + 1.4
-    shots.append([round(max(3.0, teaser_end), 3), round(t, 3), "black"])
+if DIRECT:
+    t = teaser_end + 0.12
+    shots.append([0.0, round(t, 3), "teaser"])
 else:
-    t = max(3.0, teaser_end) + 0.3
-    shots.append([round(max(3.0, teaser_end), 3), round(t, 3), "cut"])
+    shots.append([0.0, round(max(3.0, teaser_end), 3), "teaser"])
+    events.append(["rewind", round(max(3.0, teaser_end), 3)])
+    if OPENING_CARD:
+        t = max(3.0, teaser_end) + 1.4
+        shots.append([round(max(3.0, teaser_end), 3), round(t, 3), "black"])
+    else:
+        t = max(3.0, teaser_end) + 0.3
+        shots.append([round(max(3.0, teaser_end), 3), round(t, 3), "cut"])
 main_start = t
 
 shot("desk", 1, lead=0.18, tail=0.28)
@@ -109,7 +117,7 @@ timeline = {
     "no": meta["no"], "title": meta["title"], "total": round(t, 3),
     "vo": vo, "shots": shots, "events": events, "subs": subs,
     "teaser_end": round(max(3.0, teaser_end), 3), "main_start": round(main_start, 3),
-    "opening_card": OPENING_CARD
+    "opening_card": OPENING_CARD, "direct": DIRECT
 }
 (D / "timeline.json").write_text(json.dumps(timeline, ensure_ascii=False, indent=1))
 print("total", timeline["total"])

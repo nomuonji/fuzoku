@@ -56,10 +56,17 @@ bgm = np.pad(bgm[:N], (0, max(0, N-len(bgm))))
 bgm = norm(bgm, -28)
 active = np.convolve((np.abs(vo) > 0.003).astype(float), np.ones(int(SR*0.22))/(SR*0.22), mode="same")
 duck = 1 - 0.72 * np.clip(active * 3, 0, 1)
-bg_level = envelope([(0,0.55),(TL["teaser_end"],0.55),(TL["teaser_end"]+0.1,0),
-                     (TL.get("main_start",TL["teaser_end"]+1.4)-0.15,0),(TL.get("main_start",TL["teaser_end"]+1.4)+0.3,0.8),
-                     (ev["heels"]-1.8,0.8),(ev["heels"]-0.1,0),(ev["neon"],0),
-                     (ev["neon"]+0.6,0.32),(DUR,0.25)])
+MS = TL.get("main_start", TL["teaser_end"] + 1.4)
+if TL.get("direct"):
+    # 冒頭の巻き戻し・暗転がないので、BGMは切らずに通す（声の下では下がる）
+    bg_level = envelope([(0,0.55),(MS,0.55),(MS+0.5,0.8),
+                         (ev["heels"]-1.8,0.8),(ev["heels"]-0.1,0),(ev["neon"],0),
+                         (ev["neon"]+0.6,0.32),(DUR,0.25)])
+else:
+    bg_level = envelope([(0,0.55),(TL["teaser_end"],0.55),(TL["teaser_end"]+0.1,0),
+                         (MS-0.15,0),(MS+0.3,0.8),
+                         (ev["heels"]-1.8,0.8),(ev["heels"]-0.1,0),(ev["neon"],0),
+                         (ev["neon"]+0.6,0.32),(DUR,0.25)])
 music = bgm * duck * bg_level
 
 # Office hum: low body with slow rail rhythm, ducked under the voice. Stops after the doors.
@@ -68,10 +75,15 @@ noise = rng.normal(0,1,N)
 noise_hi = rng.normal(0,1,N)
 rhythm = 0.75 + 0.25*np.clip(np.sin(2*np.pi*t/1.35)*4-3, 0, 1)
 room = filt(noise, hi=180) * db(-30) * rhythm + filt(noise_hi, 700, 3000) * db(-50)
-room_env = envelope([(0,0.5),(TL["teaser_end"],0.5),(TL["teaser_end"]+0.05,0),
-                     (TL.get("main_start",TL["teaser_end"]+1.4)+0.1,0),(TL.get("main_start",TL["teaser_end"]+1.4)+0.8,0.6),
-                     (ev["door"],0.6),(ev["door"]+1.2,0.12),(ev["heels"]-0.5,0.12),
-                     (ev["heels"],0.05),(ev["neon"],0),(DUR,0.1)])
+if TL.get("direct"):
+    room_env = envelope([(0,0.5),(MS,0.5),(MS+0.5,0.6),
+                         (ev["door"],0.6),(ev["door"]+1.2,0.12),(ev["heels"]-0.5,0.12),
+                         (ev["heels"],0.05),(ev["neon"],0),(DUR,0.1)])
+else:
+    room_env = envelope([(0,0.5),(TL["teaser_end"],0.5),(TL["teaser_end"]+0.05,0),
+                         (MS+0.1,0),(MS+0.8,0.6),
+                         (ev["door"],0.6),(ev["door"]+1.2,0.12),(ev["heels"]-0.5,0.12),
+                         (ev["heels"],0.05),(ev["neon"],0),(DUR,0.1)])
 room *= room_env * (1 - 0.58*np.clip(active*3,0,1))
 
 sfx = np.zeros(N)

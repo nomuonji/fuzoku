@@ -26,7 +26,7 @@
   "published": "",
   "variant": {
     "experiment": "E1",
-    "opening_card": true,
-    "target_seconds": "65-70"
+    "opening": "direct",
+    "target_seconds": "75-90"
   }
 }

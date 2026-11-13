@@ -322,5 +322,6 @@
  ],
  "teaser_end": 3.784,
  "main_start": 5.184,
- "opening_card": true
+ "opening_card": true,
+ "direct": false
 }
