@@ -1,0 +1,39 @@
+# 公開から3日たった話のインサイトを YouTube Analytics API で読み、metrics.json と docs/experiments.md を更新する（毎日1回＋手動）。
+# 認証は post-on-push と同じ secrets（GOOGLE_SERVICE_ACCOUNT_JSON、GOOGLE_CLIENT_JSON）。
+# 前提：video-publisher の「YouTube認証」でトークンに yt-analytics.readonly が付いていること。付いていないと check で止まる。
+# 失敗しても動画の投稿には影響しない（このワークフローは数字を読むだけ）。
+name: metrics
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "check = 認証の確認だけ / auto = 記録まで"
+        default: "auto"
+  schedule:
+    - cron: "41 4 * * *"
+permissions:
+  contents: write
+jobs:
+  metrics:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -q google-api-python-client google-auth
+      - env:
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_CLIENT_JSON: ${{ secrets.GOOGLE_CLIENT_JSON }}
+          MODE: ${{ github.event.inputs.mode || 'auto' }}
+        run: |
+          python tools/analytics.py check
+          [ "$MODE" = "check" ] && exit 0
+          python tools/analytics.py auto
+          python tools/metrics.py table --window api-d2 --write
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add productions/*/metrics.json docs/experiments.md
+          git commit -m "Metrics: Analytics API の数字を記録" || echo "no change"
+          git push

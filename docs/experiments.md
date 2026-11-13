@@ -41,6 +41,10 @@
 
 ## 記録のしかた
 
+**自動（2026-11-13〜、認証し直したあと）：** Actions の `metrics`（毎日1回）が、公開から3日たった話の数字を YouTube Analytics API から読み、`metrics.json`（窓 `api-d2`）とこの文書の表を更新する。手元では `python tools/analytics.py check|fetch|retention|auto`。`retention` は維持率の曲線で、冒頭の何秒で落ちるかが分かる。前提は video-publisher の「YouTube認証」でのトークンの権限追加（未実施なら `check` が止まる）。API の日付は太平洋時間の日単位で、Studio の48時間とは一致しないため、窓は別名（`api-d2`）にして混ぜない。API はまだ実機で未検証。
+
+**手入力（Studio の数字を貼る場合）：**
+
 1. 公開48時間後、Studio の動画の「分析」から、視聴回数・総再生時間・フィード経由・視聴を続けた割合・登録者を読む
 2. `python tools/metrics.py add 009 --window 48h --views … --hours … --feed … --stayed … --subs …`
 3. `python tools/metrics.py table --window 48h --write`（この表を更新）→ commit
