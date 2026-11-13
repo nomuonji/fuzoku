@@ -57,7 +57,7 @@ bgm = norm(bgm, -28)
 active = np.convolve((np.abs(vo) > 0.003).astype(float), np.ones(int(SR*0.22))/(SR*0.22), mode="same")
 duck = 1 - 0.72 * np.clip(active * 3, 0, 1)
 bg_level = envelope([(0,0.55),(TL["teaser_end"],0.55),(TL["teaser_end"]+0.1,0),
-                     (TL["teaser_end"]+1.25,0),(TL["teaser_end"]+1.7,0.8),
+                     (TL.get("main_start",TL["teaser_end"]+1.4)-0.15,0),(TL.get("main_start",TL["teaser_end"]+1.4)+0.3,0.8),
                      (ev["heels"]-1.8,0.8),(ev["heels"]-0.1,0),(ev["neon"],0),
                      (ev["neon"]+0.6,0.32),(DUR,0.25)])
 music = bgm * duck * bg_level
@@ -69,7 +69,7 @@ noise_hi = rng.normal(0,1,N)
 rhythm = 0.75 + 0.25*np.clip(np.sin(2*np.pi*t/1.35)*4-3, 0, 1)
 room = filt(noise, hi=180) * db(-30) * rhythm + filt(noise_hi, 700, 3000) * db(-50)
 room_env = envelope([(0,0.5),(TL["teaser_end"],0.5),(TL["teaser_end"]+0.05,0),
-                     (TL["teaser_end"]+1.5,0),(TL["teaser_end"]+2.2,0.6),
+                     (TL.get("main_start",TL["teaser_end"]+1.4)+0.1,0),(TL.get("main_start",TL["teaser_end"]+1.4)+0.8,0.6),
                      (ev["door"],0.6),(ev["door"]+1.2,0.12),(ev["heels"]-0.5,0.12),
                      (ev["heels"],0.05),(ev["neon"],0),(DUR,0.1)])
 room *= room_env * (1 - 0.58*np.clip(active*3,0,1))

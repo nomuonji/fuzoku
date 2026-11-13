@@ -55,12 +55,23 @@ def shot(name, k, lead=0.14, tail=0.16):
     t = end
     return start
 
+# 実験フラグ（docs/experiments.md）。episode.json の variant.opening_card が false なら、
+# 先出しのあとのシリーズ名カード（黒地のネオン）を出さず、短い暗転だけで本編へ入る。
+# 無いときは従来どおりカードを出す（#001〜#008 の再現のため）。
+_meta = json.loads((D / "episode.json").read_text())
+OPENING_CARD = _meta.get("variant", {}).get("opening_card", True)
+
 # The teaser: the quit-your-phone video opening on an ad.
 teaser_end = say(0, 0.18, 0.12)
 shots.append([0.0, round(max(3.0, teaser_end), 3), "teaser"])
 events.append(["rewind", round(max(3.0, teaser_end), 3)])
-t = max(3.0, teaser_end) + 1.4
-shots.append([round(max(3.0, teaser_end), 3), round(t, 3), "black"])
+if OPENING_CARD:
+    t = max(3.0, teaser_end) + 1.4
+    shots.append([round(max(3.0, teaser_end), 3), round(t, 3), "black"])
+else:
+    t = max(3.0, teaser_end) + 0.3
+    shots.append([round(max(3.0, teaser_end), 3), round(t, 3), "cut"])
+main_start = t
 
 shot("desk", 1, lead=0.18, tail=0.28)
 s = shot("old", 2)
@@ -97,7 +108,8 @@ meta = json.loads((D / "episode.json").read_text())
 timeline = {
     "no": meta["no"], "title": meta["title"], "total": round(t, 3),
     "vo": vo, "shots": shots, "events": events, "subs": subs,
-    "teaser_end": round(max(3.0, teaser_end), 3)
+    "teaser_end": round(max(3.0, teaser_end), 3), "main_start": round(main_start, 3),
+    "opening_card": OPENING_CARD
 }
 (D / "timeline.json").write_text(json.dumps(timeline, ensure_ascii=False, indent=1))
 print("total", timeline["total"])

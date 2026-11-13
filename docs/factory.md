@@ -44,6 +44,7 @@
 | `escape` | `/souda/` でその話の下に出す逃げ道（`yumeoto` か `delice`） |
 | `still_time` | `/souda/` に載せる静止画を何秒目から切るか |
 | `youtube` | タイトル・概要欄・ハッシュタグ。**「風俗」・リンク・店名・料金を入れない** |
+| `variant` | 実験の条件（`experiment` `opening_card` `target_seconds`）。`opening_card:false` で先出し後のシリーズ名カードを出さない。`docs/experiments.md` |
 | `youtube_id` `published` | 公開したら埋める。`/souda/` に動画が埋め込まれる |
 
 ## 投稿（video-publisher）
@@ -69,7 +70,7 @@
 - 書く前に `docs/research/advanced-capitalism-emptiness.md` を最後まで読む。場面は `docs/episode-ideas.md` の見本と同じ深さで**新しく立てる**（見本を順に消費しない。立て方は同ファイル）。使用済みと場面・切り口を重ねない。公開したら「使用済み」に場面・突く所・言語化を追記して commit する
 - 台本は書いたあと `script.md` の末尾に自己点検を書く：AGENTS.md の「空虚さの芯」（突く所はどれか、資本主義が広告に使える言語化になっていないか、男も輪の中にいるか）、「台本の作り方」5項目、構成表、「やってはいけない」、「リアルにする工夫」を1項目ずつ照らし、満たしていない所は直してから進む
 - 言語化の一行は、候補を3つ以上書いてから一番鋭いものを選ぶ。候補も `script.md` に残す。比喩・擬人化・反転の言葉遊びで解読が要る候補は落とす（2026-11-07）
-- **聞き取りテスト（2026-11-07 Yuto指示、#004「poetic過ぎて何の話か分からない」を受けて）**：`script.md` に中学生向けの二文要約を書き、台詞だけで通じるか確かめる。最初の10秒で何の場面かを声で言い切る。説明は4〜6行の普通の話し言葉。尺は75〜90秒（台詞16〜22行）。60秒に収めるために説明を削らない（AGENTS.md「分かりやすさ」）
+- **聞き取りテスト（2026-11-07 Yuto指示、#004「poetic過ぎて何の話か分からない」を受けて）**：`script.md` に中学生向けの二文要約を書き、台詞だけで通じるか確かめる。最初の10秒で何の場面かを声で言い切る。説明は4〜6行の普通の話し言葉。尺は65〜70秒（台詞12〜14行。検証E1、2026-11-13。それまでは75〜90秒）。説明の4行は削らない（AGENTS.md「分かりやすさ」）。**書く前に `docs/experiments.md` を読み、公開48時間後の数字は `tools/metrics.py` で記録する**
 - 書き出しは先に `QUALITY=draft` で通し、要所のコマを並べて目で確かめる（字幕の折り返し、画の切れ目、先出し・シリーズ名・チラシ・ネオン）
 - **投稿は依頼ファイルの push で行う（2026-11-07 Yuto指示）。** Actions を直接起動せず、`productions/<話数>/post-request.json` に `{"post": "公開"}` を書いて main に commit・push する。`post-on-push` ワークフローが render を回して投稿し、episode.json に youtube_id を書き戻す。`"非公開"` `"書き出しだけ"` `"予約キュー"` も使える。youtube_id が入っている話は投稿されない。結果は Actions の post-on-push の実行ログ（「公開で投稿：」）で拾う
 - **YouTube に公開できたら TikTok にも出す（2026-11-07 Yuto指示）。** fuzoku を pull して `python tools/tiktok.py productions/<話数> ../video-publisher`（video-publisher も push 権限でクローンしておく）。episode.json の変更（`tiktok`）を fuzoku の main に commit・push する。video-publisher の Queue From Repo の実行ログから「TikTok ちんすけ/… → Buffer …」を拾う。TikTok だけ失敗しても YouTube は出し直さない。理由を報告する

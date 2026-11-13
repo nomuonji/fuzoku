@@ -29,5 +29,10 @@
     "account": "chinsukedt",
     "requested": "2026-11-12",
     "branch": "incoming/fuzoku-007-2026-11-12"
+  },
+  "variant": {
+    "experiment": "baseline",
+    "opening_card": true,
+    "target_seconds": "75-90"
   }
 }
