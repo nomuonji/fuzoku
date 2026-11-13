@@ -11,7 +11,7 @@
   --stayed 「視聴を続けた割合」%（Studio のエンゲージメントタブ）
   --avgpct 平均視聴率 %（平均視聴時間 ÷ 動画の長さ）   --subs  登録者の増減
   --window 計測の窓（48h / 7d / snapshot など）。話どうしを比べるときは同じ窓だけを使う
-平均視聴秒数は hours×3600÷views で計算する（Studio の hours は小数1桁なので粗い目安）。
+「視聴あたり再生」は hours×3600÷views（総再生÷視聴）。API の平均視聴秒（averageViewDuration）と値が合わない話がある（2026-11-13の実測で約2〜5倍の差）。原因は未確認。話どうしの比較は、同じ列どうしだけで行う。
 """
 import argparse, datetime, json, pathlib, re, sys
 
@@ -40,20 +40,21 @@ def episode(no):
 
 
 def table(window):
-    rows = ["| 話 | 題 | 尺(秒) | 冒頭カード | 実験 | 窓 | 視聴 | フィード% | 平均視聴(秒) | 平均視聴率 | 視聴を続けた% | 登録 |",
-            "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |"]
+    rows = ["| 話 | 題 | 尺(秒) | 冒頭カード | 実験 | 窓 | 視聴 | フィード% | 視聴あたり再生(秒) | 同(尺比%) | API平均視聴(秒) | API平均視聴率% | 視聴を続けた% | 登録 |",
+            "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |"]
     for d in sorted(p.name for p in P.iterdir() if p.is_dir() and re.fullmatch(r"\d{3}", p.name)):
         e = episode(d)
         ms = [m for m in load(d) if window in (None, m.get("window"))]
         for m in ms or [None]:
             v = m.get("views") if m else None
             avg = round(m["hours"] * 3600 / v, 1) if m and m.get("hours") is not None and v else None
-            apct = m.get("avgpct") if m and m.get("avgpct") is not None else (
-                round(avg / e["length"] * 100) if avg and e["length"] else None)
+            apct = m.get("avgpct") if m else None
+            asec = m.get("avg_sec") if m else None
+            rel = round(avg / e["length"] * 100) if avg and e["length"] else None
             feed = round(m["feed"] / v * 100) if m and m.get("feed") is not None and v else None
             f = lambda x: "-" if x is None else x
             rows.append(f"| {d} | {e['title']} | {e['length'] or '-'} | {'あり' if e['card'] else ('なし' if e['card'] is False else '-')} | {e['exp']} | "
-                        f"{f(m.get('window') if m else None)} | {f(v)} | {f(feed)} | {f(avg)} | {f(apct)} | {f(m.get('stayed') if m else None)} | {f(m.get('subs') if m else None)} |")
+                        f"{f(m.get('window') if m else None)} | {f(v)} | {f(feed)} | {f(avg)} | {f(rel)} | {f(asec)} | {f(apct)} | {f(m.get('stayed') if m else None)} | {f(m.get('subs') if m else None)} |")
     return "\n".join(rows)
 
 

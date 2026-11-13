@@ -7,8 +7,11 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "check = 認証の確認だけ / auto = 記録まで"
+        description: "check = 認証の確認だけ / auto = 記録まで / retention = 維持率の曲線を表示（episode も指定）"
         default: "auto"
+      episode:
+        description: "retention のときの話数（例 003）"
+        default: ""
   schedule:
     - cron: "41 4 * * *"
 permissions:
@@ -27,9 +30,11 @@ jobs:
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
           GOOGLE_CLIENT_JSON: ${{ secrets.GOOGLE_CLIENT_JSON }}
           MODE: ${{ github.event.inputs.mode || 'auto' }}
+          EPISODE: ${{ github.event.inputs.episode }}
         run: |
           python tools/analytics.py check
           [ "$MODE" = "check" ] && exit 0
+          if [ "$MODE" = "retention" ]; then for e in $EPISODE; do echo "== #$e =="; python tools/analytics.py retention $e; done; exit 0; fi
           python tools/analytics.py auto
           python tools/metrics.py table --window api-d2 --write
           git config user.name "github-actions[bot]"
