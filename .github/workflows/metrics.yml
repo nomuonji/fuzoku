@@ -7,10 +7,16 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "check = 認証の確認だけ / auto = 記録まで / retention = 維持率の曲線を表示（episode も指定）"
+        description: "check = 認証の確認だけ / auto = 記録まで / retention = 維持率の曲線を表示（episode も指定） / video = fuzoku以外の動画（videos と concept を指定）"
         default: "auto"
       episode:
         description: "retention のときの話数（例 003）"
+        default: ""
+      concept:
+        description: "別チャンネルの Drive コンセプト名（例 おもしろ）。check と video で使う。空なら ちんすけ"
+        default: ""
+      videos:
+        description: "video のときの対象。空白区切りで ID:公開日:尺秒（例 AbC123:2026-11-10:42）"
         default: ""
   schedule:
     - cron: "41 4 * * *"
@@ -31,9 +37,15 @@ jobs:
           GOOGLE_CLIENT_JSON: ${{ secrets.GOOGLE_CLIENT_JSON }}
           MODE: ${{ github.event.inputs.mode || 'auto' }}
           EPISODE: ${{ github.event.inputs.episode }}
+          CONCEPT: ${{ github.event.inputs.concept }}
+          VIDEOS: ${{ github.event.inputs.videos }}
         run: |
-          python tools/analytics.py check
+          CARG=""; [ -n "$CONCEPT" ] && CARG="--concept $CONCEPT"
+          python tools/analytics.py check $CARG
           [ "$MODE" = "check" ] && exit 0
+          if [ "$MODE" = "video" ]; then
+            for v in $VIDEOS; do IFS=: read -r id date len <<< "$v"; echo "== $id =="; python tools/analytics.py video "$id" "$date" $CARG ${len:+--length $len}; done; exit 0
+          fi
           if [ "$MODE" = "retention" ]; then for e in $EPISODE; do echo "== #$e =="; python tools/analytics.py retention $e; done; exit 0; fi
           python tools/analytics.py auto
           python tools/metrics.py table --window api-d2 --write

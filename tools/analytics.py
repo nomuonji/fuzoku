@@ -4,6 +4,9 @@
     python tools/analytics.py fetch 007        # 公開日から2日後までの数字を記録（窓 "api-d2"）
     python tools/analytics.py retention 007    # 維持率の曲線を表示（冒頭で何秒に落ちるか）
     python tools/analytics.py auto             # 公開から3日以上たち、まだ api-d2 が無い話を全部記録
+    python tools/analytics.py video <YouTubeのID> <公開日YYYY-MM-DD> [--concept おもしろ] [--length 秒]
+                                               # fuzoku の話でない動画（別チャンネルのコント等）の数字と維持率を表示する
+    python tools/analytics.py check --concept おもしろ   # 別チャンネルの認証が通るか
 
 認証は tools/youtube.py と同じ（Drive の config.json のリフレッシュトークン＋OAuthクライアント）。
 ただし、トークンに yt-analytics.readonly の権限が付いている必要がある。
@@ -28,11 +31,71 @@ P = ROOT / "productions"
 WINDOW = "api-d2"
 
 
-def service():
+def concept_refresh_token(concept):
+    """Drive の v-stock/<concept>/config.json のリフレッシュトークン。名前が完全一致しなければ前方一致で探す。"""
+    import io
+    from googleapiclient.http import MediaIoBaseDownload
+    d = yt.gd.drive()
+    root = yt.gd.child(d, None, yt.gd.CFG["drive_root"], folder=True) or sys.exit("v-stock が見つからない")
+    fid = yt.gd.child(d, root, concept, folder=True)
+    if not fid:
+        q = f"'{root}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false"
+        names = d.files().list(q=q, fields="files(id,name)", pageSize=100, supportsAllDrives=True,
+                               includeItemsFromAllDrives=True).execute()["files"]
+        hit = [f for f in names if f["name"].startswith(concept)]
+        if len(hit) != 1:
+            sys.exit(f"コンセプト「{concept}」が決まらない（候補: {[f['name'] for f in names]}）")
+        fid = hit[0]["id"]
+    cfg = yt.gd.child(d, fid, "config.json") or sys.exit("config.json が無い")
+    buf = io.BytesIO()
+    dl = MediaIoBaseDownload(buf, d.files().get_media(fileId=cfg, supportsAllDrives=True))
+    while not dl.next_chunk()[1]:
+        pass
+    tok = (json.loads(buf.getvalue()).get("apiKeys") or {}).get("youtube_refresh_token")
+    return tok or sys.exit(f"{concept} の config.json に youtube_refresh_token が無い")
+
+
+def service(concept=None):
     cid, sec = yt.client_creds()
-    cred = Credentials(None, refresh_token=yt.refresh_token(), token_uri="https://oauth2.googleapis.com/token",
+    token = concept_refresh_token(concept) if concept else yt.refresh_token()
+    cred = Credentials(None, refresh_token=token, token_uri="https://oauth2.googleapis.com/token",
                        client_id=cid, client_secret=sec)
     return build("youtubeAnalytics", "v2", credentials=cred, cache_discovery=False)
+
+
+def video_report(svc, vid, published, length=None):
+    """fuzoku の話でない動画：公開日〜2日後（api-d2）と公開から今日まで、維持率の主な秒数を出す。記録はしない（呼び出し側が書く）。"""
+    d0 = datetime.date.fromisoformat(published)
+    out = {"video": vid, "published": published}
+    for name, end in (("api-d2", d0 + datetime.timedelta(days=2)), ("since", datetime.date.today())):
+        r = query(svc, vid, d0.isoformat(), end.isoformat(),
+                  "views,estimatedMinutesWatched,averageViewDuration,averageViewPercentage,subscribersGained")
+        v, mins, avg, pct, subs = (r.get("rows") or [[0, 0, 0, 0, 0]])[0]
+        row = {"views": int(v), "hours": round(mins / 60, 3), "avg_sec": round(avg, 1), "avgpct": round(pct, 1), "subs": int(subs)}
+        try:
+            t = query(svc, vid, d0.isoformat(), end.isoformat(), "views", dimensions="insightTrafficSourceType")
+            row["feed"] = int(sum(x for k, x in (t.get("rows") or []) if k == "SHORTS"))
+        except Exception:
+            pass
+        out[name] = row
+    r = query(svc, vid, d0.isoformat(), datetime.date.today().isoformat(),
+              "audienceWatchRatio", dimensions="elapsedVideoTimeRatio", sort="elapsedVideoTimeRatio")
+    rows = r.get("rows", [])
+    pts = {}
+    for sec in (2, 3, 5, 8, 10, 15, 20, 30, 45):
+        if length and sec > length:
+            continue
+        if not length:
+            break
+        c = [w for ratio, w in rows if ratio * length <= sec]
+        pts[f"{sec}s"] = round(c[-1], 2) if c else None
+    if rows:
+        pts["end"] = round(rows[-1][1], 2)
+    out["retention"] = pts if length else {"note": "--length が無いので秒に直せない", "end": pts.get("end")}
+    print(json.dumps(out, ensure_ascii=False))
+    for ratio, w in rows:
+        if length:
+            print(f"{ratio * length:5.1f}s {'#' * int(w * 40)} {w:.2f}")
 
 
 def query(svc, vid, start, end, metrics, dimensions=None, sort=None):
@@ -79,7 +142,18 @@ def fetch(svc, no):
 
 def main():
     cmd = sys.argv[1] if len(sys.argv) > 1 else ""
-    svc = service()
+    args = sys.argv[2:]
+    concept = None
+    length = None
+    if "--concept" in args:
+        i = args.index("--concept"); concept = args[i + 1]; del args[i:i + 2]
+    if "--length" in args:
+        i = args.index("--length"); length = float(args[i + 1]); del args[i:i + 2]
+    sys.argv = sys.argv[:2] + args
+    svc = service(concept)
+    if cmd == "video" and len(args) >= 2:
+        video_report(svc, args[0], args[1], length)
+        return
     if cmd == "check":
         r = svc.reports().query(ids="channel==MINE", startDate=(datetime.date.today() - datetime.timedelta(days=7)).isoformat(),
                                 endDate=datetime.date.today().isoformat(), metrics="views").execute()
