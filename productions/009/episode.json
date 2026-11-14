@@ -29,5 +29,10 @@
     "experiment": "E1",
     "opening": "direct",
     "target_seconds": "75-90"
+  },
+  "tiktok": {
+    "account": "chinsukedt",
+    "requested": "2026-11-14",
+    "branch": "incoming/fuzoku-009-2026-11-14"
   }
 }
