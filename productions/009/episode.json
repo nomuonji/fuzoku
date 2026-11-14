@@ -1,0 +1,33 @@
+{
+  "no": "009",
+  "slug": "sukuroru",
+  "title": "通販アプリのおすすめ",
+  "status": "draft",
+  "scene": "土曜の二十二時十二分、ベッドの上。給料は入っているのに、通販アプリのおすすめを一時間送っても欲しい物が一つも出てこない。",
+  "line": "俺の欲しい物は、画面に並んだ物の中にしか、なかった。",
+  "escape": "delice",
+  "still_time": 68.0,
+  "voice": {
+    "speaker": 84,
+    "speed": 1.0,
+    "pitch": -0.04,
+    "intonation": 0.85
+  },
+  "youtube": {
+    "title": "通販アプリを一時間見て、九百八十円のバンドを買った42歳 #くだらない世界",
+    "description": "二十二時十二分。使える金はあるのに、欲しい物が一つも思いつかなかった。\n\nくだらない世界 #009",
+    "hashtags": [
+      "#くだらない世界",
+      "#ハードボイルド",
+      "#あるある",
+      "#Shorts"
+    ]
+  },
+  "youtube_id": "",
+  "published": "",
+  "variant": {
+    "experiment": "E1",
+    "opening": "direct",
+    "target_seconds": "75-90"
+  }
+}
