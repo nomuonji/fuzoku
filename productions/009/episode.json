@@ -2,7 +2,7 @@
   "no": "009",
   "slug": "sukuroru",
   "title": "通販アプリのおすすめ",
-  "status": "draft",
+  "status": "published",
   "scene": "土曜の二十二時十二分、ベッドの上。給料は入っているのに、通販アプリのおすすめを一時間送っても欲しい物が一つも出てこない。",
   "line": "俺の欲しい物は、画面に並んだ物の中にしか、なかった。",
   "escape": "delice",
@@ -23,8 +23,8 @@
       "#Shorts"
     ]
   },
-  "youtube_id": "",
-  "published": "",
+  "youtube_id": "bruqmtD-Tkg",
+  "published": "2026-11-14",
   "variant": {
     "experiment": "E1",
     "opening": "direct",
