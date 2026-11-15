@@ -1,0 +1,33 @@
+{
+  "no": "010",
+  "slug": "hakosen",
+  "title": "量販店の在庫一掃",
+  "status": "draft",
+  "scene": "日曜の十六時四十分、郊外の量販店。自分の会社が去年出した扇風機が、十一月の通路の端で三百九十八円で山になっている。",
+  "line": "俺の給料は、誰かがいらないのに買った物で、できている。",
+  "escape": "yumeoto",
+  "still_time": 71.0,
+  "voice": {
+    "speaker": 84,
+    "speed": 1.0,
+    "pitch": -0.04,
+    "intonation": 0.85
+  },
+  "youtube": {
+    "title": "自分の会社の扇風機が三百九十八円で山になっていた42歳 #くだらない世界",
+    "description": "十六時四十分。去年うちの会社が出した扇風機が、十一月の量販店で山になっていた。\n\nくだらない世界 #010",
+    "hashtags": [
+      "#くだらない世界",
+      "#ハードボイルド",
+      "#あるある",
+      "#Shorts"
+    ]
+  },
+  "youtube_id": "",
+  "published": "",
+  "variant": {
+    "experiment": "E1",
+    "opening": "direct",
+    "target_seconds": "75-90"
+  }
+}
