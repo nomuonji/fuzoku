@@ -4,7 +4,7 @@
     python tools/tiktok.py productions/004 ../video-publisher --dry-run  # 置くだけ（push しない）
 
 流れ：
-  1. 動画を用意する。out/<no>-<slug>.mp4 が無ければ、fuzoku の Actions（render / post-on-push）の
+  1. 動画を用意する。out/<no>-<slug>.mp4 が無いか、確認用の下書き（幅1440px未満）なら、fuzoku の Actions（render / post-on-push）の
      成果物「<no>-<slug>」の最新を gh api で落とす
   2. TikTok 用に 1080x1920・最大 6Mbps に詰め直す（GitHub は 100MB を超えるファイルを push できない）
   3. video-publisher に incoming/fuzoku-<no> ブランチを切り、incoming/ちんすけ/<日付>-<no>-<slug>.mp4 と
@@ -44,6 +44,12 @@ def fetch_artifact(name, dst):
     print(f"成果物 {arts[0]['id']}（{arts[0]['created_at']}）から {dst.name}")
 
 
+def width(path):
+    out = subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=width",
+                          "-of", "csv=p=0", str(path)], capture_output=True, text=True, check=True).stdout
+    return int(out.strip() or 0)
+
+
 def squeeze(src, dst):
     for rate in ("6M", "4M"):
         run("ffmpeg", "-v", "error", "-y", "-i", src, "-vf", "scale=1080:1920:flags=lanczos", "-c:v", "libx264",
@@ -68,7 +74,12 @@ def main():
     concept = pub.get("concept", "ちんすけ")
     name = f"{meta['no']}-{meta['slug']}"
 
+    # 手元の out/ には確認用の下書き（QUALITY=draft、1080p・crf25）が残っていることがある。
+    # 公開用（1440p）でなければ使わず、Actions の成果物（公開したのと同じ高画質版）を取る（2026-11-16）
     src = ROOT / f"out/{name}.mp4"
+    if src.exists() and width(src) < 1440:
+        print(f"{src.name} は {width(src)}px の下書き。Actions の成果物を使う")
+        src = ROOT / f"out/{name}.hq.mp4"
     if not src.exists():
         src.parent.mkdir(exist_ok=True)
         fetch_artifact(name, src)

@@ -26,4 +26,4 @@ voices = ROOT / f"docs/research/voices/{no}-{slug}.md"
 if not voices.exists():
     voices.write_text(f"# #{no} {slug} — 生の声から学んだ感情の型\n\n> 引用・言い換え・エピソードの流用はしない。抽象化した型だけ残す。\n\n- \n")
 print(f"作成: {dst.relative_to(ROOT)}  /  {voices.relative_to(ROOT)}")
-print("次: script.md を書く → Yutoのチェック → lines.json → tools/vo.py → build_timeline.py と scene.py を場面に合わせて書き換え → tools/make.py")
+print("次: script.md を書く → Yutoのチェック → lines.json → tools/vo.py → build_timeline.py と scene.py を場面に合わせて書き換え → QUALITY=draft tools/make.py → tools/sheet.py で目で確認（AGENTS.md「画の作り方」）")
