@@ -2,11 +2,11 @@
   "no": "011",
   "slug": "yosan",
   "title": "予算消化の椅子",
-  "status": "draft",
+  "status": "published",
   "scene": "水曜の十七時四十分、会社の会議室。下期の予算があと百十一万七千円残っていて、去年買ったばかりの椅子を四十二脚買い替える。購入理由は男があとから書く。",
   "line": "俺の仕事は、いらない物が要る理由を、書くことだ。",
   "escape": "yumeoto",
-  "still_time": null,
+  "still_time": 50.0,
   "voice": {
     "speaker": 84,
     "speed": 1.0,
@@ -23,8 +23,8 @@
       "#Shorts"
     ]
   },
-  "youtube_id": "",
-  "published": "",
+  "youtube_id": "1zoW6Tkhs2A",
+  "published": "2026-11-16",
   "variant": {
     "experiment": "E1",
     "opening": "direct",
