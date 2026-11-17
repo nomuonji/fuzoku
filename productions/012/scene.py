@@ -1,0 +1,86 @@
+"""#012 visual builder: ad about smell on the train home."""
+import json, pathlib, re
+D=pathlib.Path(__file__).resolve().parent
+A=D.parent.parent/"assets"/"character"
+def inner(name):
+    s=(A/name).read_text(encoding="utf-8")
+    return re.sub(r"^<svg[^>]*>|</svg>$","",s.strip(),flags=re.S)
+S={k:inner(v) for k,v in {
+ "front":"man/front.svg","side":"man/side.svg","back":"man/back.svg",
+ "blank":"man/face_blank.svg","distant":"man/face_distant.svg",
+ "glance":"man/face_glance.svg","resolve":"man/face_resolve.svg",
+ "woman":"woman_pass.svg"}.items()}
+TL=json.loads((D/"timeline.json").read_text(encoding="utf-8"))
+HTML=r"""<!doctype html><html><head><meta charset="utf-8"><style>
+html,body{margin:0;background:#050506}#stage{position:relative;width:1080px;height:1920px;overflow:hidden;background:#0c0c0f;font-family:"Noto Serif CJK JP",serif}
+#art{position:absolute;inset:0;width:1080px;height:1920px}
+#subbg{position:absolute;left:0;right:0;bottom:90px;height:580px;background:linear-gradient(transparent,rgba(0,0,0,.8) 25%,rgba(0,0,0,.8) 78%,transparent);opacity:0}
+#sub{position:absolute;left:45px;right:45px;bottom:175px;text-align:center;white-space:pre-line;color:#f0eee9;font-size:50px;line-height:1.48;letter-spacing:.04em;text-shadow:0 2px 12px #000}
+#fade{position:absolute;inset:0;background:#000;opacity:0}
+.neon{font-weight:800;letter-spacing:.08em;color:#ffe5f0;-webkit-text-stroke:3px #ff2e88;text-shadow:0 0 7px #ff7ab4,0 0 22px #ff2e88,0 0 55px #ff2e88}
+</style></head><body><div id="stage"><svg id="art" viewBox="0 0 1080 1920"></svg><div id="subbg"></div><div id="sub"></div><div id="fade"></div></div>
+<script>
+const S=__SVGS__,TL=__TL__;
+const JP='font-family="Noto Serif CJK JP,serif"';
+function rect(x,y,w,h,c,r,extra){return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="'+(r||0)+'" fill="'+(c||"#252529")+'" '+(extra||'')+'/>'}
+function txt(x,y,s,size,fill,extra){return '<text x="'+x+'" y="'+y+'" '+JP+' font-size="'+(size||30)+'" fill="'+(fill||"#e9e6df")+'" '+(extra||'')+'>'+s+'</text>'}
+function man(k,vb,x,y,w,h){return '<svg x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" viewBox="'+vb+'" preserveAspectRatio="xMidYMid meet">'+S[k]+'</svg>'}
+function cam(s,z,cx,cy,dx,dy){return '<g transform="translate('+(540+(dx||0))+' '+(950+(dy||0))+') scale('+(z||1)+') translate('+(-(cx||540))+' '+(-(cy||950))+')">'+s+'</g>'}
+function base(s){return '<svg viewBox="0 0 1080 1920" width="1080" height="1920"><defs><linearGradient id="window" x2="0" y2="1"><stop stop-color="#d8d5ce" stop-opacity=".28"/><stop offset="1" stop-color="#d8d5ce" stop-opacity="0"/></linearGradient><linearGradient id="street" x2="0" y2="1"><stop stop-color="#45454b"/><stop offset="1" stop-color="#0b0b0d"/></linearGradient><filter id="blur"><feGaussianBlur stdDeviation="24"/></filter></defs><rect width="1080" height="1920" fill="#0b0b0d"/>'+s+'</svg>'}
+function phone(screen,x,y){x=x||260;y=y||280;return rect(x,y,560,1160,"#08080a",70,'stroke="#77777d" stroke-width="12"')+rect(x+22,y+35,516,1092,"#ddd9d0",40)+rect(x+220,y+14,120,12,"#77777d",6)+screen}
+
+function glow(x,y,r){return '<circle cx="'+x+'" cy="'+y+'" r="'+r+'" fill="#e9e6df" opacity=".12" filter="url(#blur)"/>'}
+function fbox(x,y,w,h,r){let cx=w/2,cy=h*0.38,rr=h*0.2;return '<g transform="translate('+x+' '+y+') rotate('+(r||0)+' '+(w/2)+' '+(h/2)+')">'+rect(0,0,w,h,"#d8d5ce",6,'stroke="#77777d" stroke-width="3"')+rect(0,h*0.74,w,h*0.26,"#45454b",0)+[0,1,2,3,4].map(i=>'<ellipse cx="'+cx+'" cy="'+(cy-rr*.55)+'" rx="'+(rr*.28)+'" ry="'+(rr*.55)+'" fill="#45454b" transform="rotate('+(i*72+20)+' '+cx+' '+cy+')"/>').join('')+'<circle cx="'+cx+'" cy="'+cy+'" r="'+(rr*.14)+'" fill="#d8d5ce"/></g>'}
+function pile(cx,y,bw,bh,rows,from){let g='',n=0;for(let r=0;r<rows;r++){let cnt=rows-r;for(let i=0;i<cnt;i++){let x=cx-cnt*bw/2+i*bw+((r*7+i*5)%3-1)*3,yy=y-(r+1)*bh;if(n++<(from===undefined?99:from))g+=fbox(x,yy,bw-6,bh-4,((r*3+i*2)%5-2)*1.2)}}return g}
+function tagcard(x,y,w,h,s,size,dark){return rect(x,y,w,h,dark?"#16161b":"#f4f2ec",10,'stroke="#9a978f" stroke-width="3"')+txt(x+w/2,y+h/2+size*0.35,s,size,dark?"#e9e6df":"#111",'text-anchor="middle" font-weight="800"')}
+function shelves(){let g='';for(let i=0;i<2;i++){let x=i?830:0;g+=rect(x,320,250,860,"#16161b",0)+[0,1,2,3].map(j=>rect(x+(i?0:0),420+j*200,250,16,"#2a2a2e")+rect(x+20,340+j*200,60,80,"#202025")+rect(x+110,360+j*200,80,60,"#1d1d22")).join('')}return g}
+function lights(){let g='';for(let i=0;i<4;i++)g+=rect(120+i*230,150,160,16,"#e9e6df",6,'opacity=".28"')+rect(60+i*230,150,280,320,"#e9e6df",0,'opacity=".02"');return g}
+function chair(x,y,s,fill,op){fill=fill||"#d8d5ce";return '<g transform="translate('+x+' '+y+') scale('+(s||1)+')" opacity="'+(op===undefined?1:op)+'">'+rect(14,0,100,92,fill,16,'stroke="#77777d" stroke-width="4"')+rect(0,104,128,28,fill,10,'stroke="#77777d" stroke-width="4"')+rect(58,132,12,52,"#45454b",3)+'<path d="M64 184 L10 206 M64 184 L118 206 M64 184 V210" stroke="#45454b" stroke-width="9" stroke-linecap="round"/>'+'<circle cx="10" cy="212" r="8" fill="#45454b"/><circle cx="118" cy="212" r="8" fill="#45454b"/><circle cx="64" cy="216" r="8" fill="#45454b"/></g>'}
+function stackc(cx,y,n){let g='';for(let i=0;i<n;i++)g+=chair(cx-64+(i%2?14:-14)+(i*5%9),y-i*26,1,"#d8d5ce",1);return g}
+function arrowR(x,y,w,c){c=c||"#e9e6df";return '<path d="M'+x+' '+y+' H'+(x+w)+'" stroke="'+c+'" stroke-width="10"/><path d="M'+(x+w-34)+' '+(y-32)+' L'+(x+w)+' '+y+' L'+(x+w-34)+' '+(y+32)+'" stroke="'+c+'" stroke-width="10" fill="none"/>'}
+function arrowD(x,y,h,c){c=c||"#e9e6df";return '<path d="M'+x+' '+y+' V'+(y+h)+'" stroke="'+c+'" stroke-width="10"/><path d="M'+(x-32)+' '+(y+h-34)+' L'+x+' '+(y+h)+' L'+(x+32)+' '+(y+h-34)+'" stroke="'+c+'" stroke-width="10" fill="none"/>'}
+function smell(x,y,n,op){let g='';for(let i=0;i<(n||3);i++){g+='<path d="M'+(x+i*46)+' '+y+' c-30 -45 30 -90 0 -135 c-30 -45 30 -90 0 -135" fill="none" stroke="#e9e6df" stroke-width="6" stroke-linecap="round" opacity="'+(op||0.5)+'"/>'}return g}
+function pill(x,y,w,h,s,size,on){return rect(x,y,w,h,on?"#e9e6df":"#16161b",h/2,'stroke="#9a978f" stroke-width="3"')+txt(x+w/2,y+h/2+size*0.35,s,size,on?"#111":"#e9e6df",'text-anchor="middle" font-weight="700"')}
+function strapAt(x,len){return '<path d="M'+x+' 330 V'+(330+len*0.45)+'" stroke="#77777d" stroke-width="6"/><circle cx="'+x+'" cy="'+(330+len*0.45+len*0.3)+'" r="'+(len*0.3)+'" fill="none" stroke="#b3afa5" stroke-width="12"/>'}
+function carBg(k){let w='';for(let i=0;i<9;i++){let x=((i*140-k*260)%1260+1260)%1260-90;w+=rect(x,500+((i*37)%5)*24,16,16,"#e9e6df",3,'opacity=".35"')}return rect(0,0,1080,1920,"#0b0b0e")+rect(0,330,1080,14,"#77777d")+[0,1,2,3,4].map(i=>strapAt(110+i*215,170)).join('')+rect(0,420,1080,380,"#14141a")+w+rect(0,800,1080,18,"#202025")}
+function teaser(t,k){return base(rect(0,0,1080,1920,"#0a0a0d")+'<g opacity=".92">'+cam(man("blank","0 0 300 320",-60,60,1200,1280),1,540,850)+'</g>'+glow(540,1330,380)+smell(800,1180,3,0.35))}
+function train(t,k){return base(carBg(k)+man("back","0 0 400 1000",300,470,460,1150)+txt(540,250,"木曜　21:40",44,"#8a8a90",'text-anchor="middle" letter-spacing="10"'))}
+function ad(t,k){let sw=Math.sin(k*3)*1.2;return base(rect(0,0,1080,1920,"#0b0b0e")+rect(0,300,1080,14,"#77777d")+'<g transform="rotate('+sw+' 540 300)">'+'<path d="M300 314 L300 420 M780 314 L780 420" stroke="#77777d" stroke-width="5"/>'+rect(110,420,860,660,"#e9e6df",8)+txt(540,610,"その匂い、",118,"#111",'text-anchor="middle" font-weight="800"')+txt(540,760,"周りはもう",118,"#111",'text-anchor="middle" font-weight="800"')+txt(540,910,"気づいています",104,"#111",'text-anchor="middle" font-weight="800"')+rect(310,980,460,64,"#111",32)+txt(540,1025,"襟用 消臭シート",38,"#e9e6df",'text-anchor="middle" font-weight="700"')+'</g>')}
+function pack(t,k){let n=Math.min(1,k*2.2);return base(rect(0,0,1080,1920,"#0b0b0e")+glow(540,700,420)+rect(250,300,580,700,"#e9e6df",16,'stroke="#9a978f" stroke-width="4"')+txt(540,520,"襟用",120,"#111",'text-anchor="middle" font-weight="800"')+txt(540,670,"消臭シート",92,"#111",'text-anchor="middle" font-weight="800"')+txt(540,830,"30枚入り",68,"#45454b",'text-anchor="middle" font-weight="700"')+'<g opacity="'+n+'" transform="translate(540 1020) rotate(-4)">'+tagcard(-190,-20,380,150,"¥680",86)+'</g>')}
+function sniff(t,k){return base(rect(0,0,1080,1920,"#0a0a0d")+'<g transform="rotate('+(5+3*Math.min(1,k*2))+' 540 900)">'+cam(man("blank","0 0 300 320",-60,60,1200,1280),1,540,850)+'</g>'+glow(540,1330,360)+smell(210,1190,2,0.5)+smell(790,1190,2,0.5)+pill(90,1230,280,86,"洗剤",52,false)+pill(710,1230,300,86,"夕方の汗",52,false))}
+function doubt(t,k){let n=Math.min(1,Math.max(0,(k-.3)*2.2));return base(rect(0,0,1080,1920,"#0b0b0e")+rect(140,330,800,270,"#16161b",14,'stroke="#45454b" stroke-width="4"')+txt(540,430,"さっき",54,"#77777d",'text-anchor="middle" letter-spacing="8"')+txt(540,540,"気にしていない",88,"#8a8a90",'text-anchor="middle" font-weight="700"')+arrowD(540,650,150,"#8a8a90")+'<g opacity="'+(0.25+0.75*n)+'">'+rect(140,880,800,280,"#e9e6df",14)+txt(540,980,"いま",54,"#45454b",'text-anchor="middle" letter-spacing="8"')+txt(540,1100,"気になっている",92,"#111",'text-anchor="middle" font-weight="800"')+'</g>')}
+function mech(t,k){let L=["広告","不安","気にする人が増える","消臭シートが売れる"],g='';for(let i=0;i<4;i++){let o=Math.min(1,Math.max(0,k*5-i*0.9+0.4)),y=330+i*225,on=i===3;g+='<g opacity="'+o+'">'+rect(140,y,800,150,on?"#e9e6df":"#16161b",16,'stroke="#9a978f" stroke-width="4"')+txt(540,y+100,L[i],i>=2?64:84,on?"#111":"#e9e6df",'text-anchor="middle" font-weight="800"')+(i<3?arrowD(540,y+158,54,"#8a8a90"):'')+'</g>'}return base(rect(0,0,1080,1920,"#0b0b0e")+g)}
+function who(t,k){let h='';for(let i=0;i<5;i++){let x=140+i*200;h+='<circle cx="'+x+'" cy="760" r="48" fill="#45454b"/><path d="M'+(x-80)+' 900 q0 -110 80 -110 q80 0 80 110Z" fill="#45454b"/>'+txt(x,660,"？",100,"#e9e6df",'text-anchor="middle" font-weight="800" opacity="'+(0.4+0.6*((Math.sin(k*8+i)+1)/2))+'"')}return base(rect(0,0,1080,1920,"#0b0b0e")+txt(540,380,"誰が気づいているのか",66,"#e9e6df",'text-anchor="middle" font-weight="700"')+h+rect(230,1020,620,140,"#16161b",16,'stroke="#9a978f" stroke-width="4"')+txt(540,1115,"書いていない",78,"#e9e6df",'text-anchor="middle" font-weight="800"'))}
+function box(x,y,s,fill){return rect(x,y,200*s,300*s,fill||"#e9e6df",10,'stroke="#9a978f" stroke-width="3"')+txt(x+100*s,y+150*s,"襟用",52*s,"#111",'text-anchor="middle" font-weight="800"')+txt(x+100*s,y+215*s,"消臭",40*s,"#45454b",'text-anchor="middle" font-weight="700"')}
+function bag(t,k){let n=Math.min(1,k*2);return base(rect(0,0,1080,1920,"#0b0b0e")+glow(540,760,400)+txt(540,330,"去年の夏から",58,"#8a8a90",'text-anchor="middle" letter-spacing="8"')+'<path d="M380 560 q0 -170 160 -170 q160 0 160 170" fill="none" stroke="#77777d" stroke-width="22"/>'+box(300,610,1.0,"#d8d5ce")+box(520,640,1.0,"#e9e6df")+rect(180,820,720,340,"#1b1b20",30,'stroke="#77777d" stroke-width="6" opacity=".92"')+'<g opacity="'+n+'">'+tagcard(380,1190,320,130,"×2",84,true)+'</g>')}
+function third(t,k){let n=Math.min(1,Math.max(0,(k-.3)*2.5));return base(rect(0,0,1080,1920,"#0b0b0e")+rect(240,300,600,170,"#16161b",12,'stroke="#9a978f" stroke-width="4"')+txt(540,420,"薬局",120,"#e9e6df",'text-anchor="middle" font-weight="800" letter-spacing="20"')+glow(540,800,380)+box(120,580,1.0,"#77777d")+box(440,580,1.0,"#8a8a90")+'<g opacity="'+(0.15+0.85*n)+'">'+box(760,580,1.0,"#e9e6df")+'</g>'+txt(540,1050,"三箱目",110,"#e9e6df",'text-anchor="middle" font-weight="800" opacity="'+(0.3+0.7*n)+'"'))}
+function work(t,k){let L=["席に座って働く","汗をかく","匂いを消す物を買う"],g='';for(let i=0;i<3;i++){let o=Math.min(1,Math.max(0,k*4-i*0.9+0.4)),y=340+i*260,on=i===2;g+='<g opacity="'+o+'">'+rect(140,y,800,160,on?"#e9e6df":"#16161b",16,'stroke="#9a978f" stroke-width="4"')+txt(540,y+106,L[i],i===2?66:80,on?"#111":"#e9e6df",'text-anchor="middle" font-weight="800"')+(i<2?arrowD(540,y+168,70,"#8a8a90"):'')+'</g>'}return base(rect(0,0,1080,1920,"#0b0b0e")+g)}
+function pair(dx,showW,k){return carBg(k)+man("back","0 0 400 1000",70+dx,470,460,1150)+(showW?'<g transform="translate(470 760) scale(1.25)">'+S.woman+'</g>':'')}
+function smell12(t,k){let n=Math.min(1,k*2);return base('<g>'+pair(0,true,k)+'</g>'+'<g opacity="'+n+'">'+smell(640,720,3,0.55)+'</g>')}
+function hands(t,k){let m=Math.min(1,k*1.6),lx=-90+m*90,rx=90-m*90;return base(rect(0,0,1080,1920,"#0a0a0c")+rect(0,300,1080,14,"#77777d")+strapAt(540,420)+glow(540,860,300)+'<g transform="translate('+lx+' 0)"><rect x="170" y="800" width="360" height="92" rx="46" fill="#8a8a90" transform="rotate(-8 350 846)"/></g><g transform="translate('+rx+' 0)"><rect x="560" y="780" width="360" height="92" rx="46" fill="#b3afa5" transform="rotate(8 740 826)"/></g>'+smell(500,1060,3,0.4)+txt(540,1220,"体温",64,"#8a8a90",'text-anchor="middle" letter-spacing="12"'))}
+function step(t,k){return base('<g>'+pair(-130*Math.min(1,k*1.8),true,0.4)+'</g>'+txt(540,260,"半歩",64,"#8a8a90",'text-anchor="middle" letter-spacing="12"'))}
+function street(){let w='';for(let r=0;r<5;r++)for(let c=0;c<6;c++)w+=rect(90+c*150,160+r*130,100,80,"#e9e6df",4,'opacity="'+(((r*7+c*3)%4===0)?.34:.08)+'"');return base('<rect width="1080" height="1920" fill="url(#street)"/>'+rect(40,120,1000,740,"#16161b",6)+w+rect(430,720,220,140,"#202025",4)+glow(540,790,260)+'<path d="M0 1300 L1080 1300 V1920 H0Z" fill="#121216"/>'+[0,1,2,3].map(i=>rect(70+i*270,1360,140,10,"#45454b",3)).join('')+smell(640,720,3,0.3)+cam(man("back","0 0 400 1000",270,560,520,1050),1,540,1050))}
+function punchline(){return base(rect(0,0,1080,1920,"#0c0c0f")+glow(560,1250,260)+cam(man("distant","0 0 300 320",-100,180,1280,1370),1.07,540,850))}
+function woman(t,k){let x=-620+(1560+620)*Math.max(0,Math.min(1,k));return base('<rect width="1080" height="1920" fill="#0a0a0c"/><rect x="0" y="1120" width="1080" height="800" fill="#202025"/><g transform="translate('+(x-360)+' 740) scale(1.3)">'+S.woman+'</g>')}
+function eyes(t,k,start){let key=t<start+.15?"blank":t<start+.85?"glance":"resolve";return base('<svg x="120" y="800" width="840" height="330" viewBox="80 145 140 55" preserveAspectRatio="xMidYMid meet">'+S[key]+'</svg>')}
+function flyer(){return base('<rect width="1080" height="1920" fill="#09090b"/><rect x="220" y="-120" width="640" height="2200" fill="#202025"/><g transform="translate(290 210) rotate(-3)"><image href="../../assets/flyers/flyer_a.png" width="440" height="620"/></g><g transform="translate(420 850) rotate(3)"><image href="../../assets/flyers/flyer_c.png" width="430" height="620"/></g><rect width="1080" height="1920" fill="#000" opacity=".22"/>')}
+const SCN={teaser:teaser,train:train,ad:ad,pack:pack,sniff:sniff,doubt:doubt,mech:mech,who:who,bag:bag,third:third,work:work,punchline:punchline,smell12:smell12,hands:hands,step:step,street:street,woman:woman,eyes:eyes,flyer:flyer,neon:function(){return base("")},black:function(){return base("")},cut:function(){return base("")}};
+function render(t){
+let sh=TL.shots.find(s=>t>=s[0]&&t<s[1])||TL.shots[TL.shots.length-1],k=(t-sh[0])/Math.max(.001,sh[1]-sh[0]);
+let art=document.getElementById("art");art.innerHTML=SCN[sh[2]](t,k,sh[0]);
+if(sh[2]==="black"||sh[2]==="neon"){
+let final=sh[2]==="neon",d=t-sh[0],f=[1,0,1,1,0,0,1,0,1,1,1,1],on=d<.65?f[Math.floor(d/.05)%f.length]:1;
+let tag=final?"くだらない世界　#012":"#012　中吊りの匂い";
+art.innerHTML+='<foreignObject x="0" y="'+(final?330:500)+'" width="1080" height="1400"><div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;opacity:'+on+'"><div class="neon" style="font-size:'+(final?145:104)+'px;writing-mode:vertical-rl;text-align:start;display:inline-block;height:'+(final?1010:760)+'px">そうだ、<br>風俗行こう。</div><div style="color:#ddd;font-size:34px;letter-spacing:12px;margin-top:28px">'+tag+'</div></div></foreignObject>';
+}
+let sub=TL.subs.find(s=>t>=s[0]&&t<s[1]);
+document.getElementById("sub").textContent=sub?sub[2]:"";
+document.getElementById("subbg").style.opacity=sub?"1":"0";
+document.getElementById("sub").style.fontSize=t<TL.teaser_end?"62px":"50px";
+document.getElementById("fade").style.opacity=t>TL.total-.55?(t-(TL.total-.55))/.55:0;
+}
+window.render=render;
+</script></body></html>"""
+html=HTML.replace("__SVGS__",json.dumps(S,ensure_ascii=False)).replace("__TL__",json.dumps(TL,ensure_ascii=False))
+(D/"ep.html").write_text(html,encoding="utf-8")
+print("scene html written",len(html))
