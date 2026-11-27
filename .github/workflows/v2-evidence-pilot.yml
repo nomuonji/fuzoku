@@ -1,0 +1,29 @@
+name: V2 evidence pilot (no publishing)
+on:
+  push:
+    branches: [experiment/shorts-v2]
+    paths:
+      - 'tools/v2/evidence_pilot.py'
+      - '.github/workflows/v2-evidence-pilot.yml'
+permissions:
+  contents: read
+jobs:
+  pilot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update -qq && sudo apt-get install -y ffmpeg fonts-noto-cjk
+      - run: pip install Pillow
+      - run: bash tools/voicevox/start.sh
+      - run: python tools/v2/evidence_pilot.py evidence-pilot
+      - uses: actions/upload-artifact@v4
+        with:
+          name: evidence-pilot
+          path: |
+            evidence-pilot/pilot.mp4
+            evidence-pilot/card*.png
+            evidence-pilot/flow*.png
+            evidence-pilot/credits.txt
+            evidence-pilot/manifest.json
+          retention-days: 14
