@@ -46,7 +46,7 @@ def render(manifest, output, width=1080, height=1920, fps=30):
         prepared.append((p,kind,n,speed,start,move))
         frames+=n
     total=frames/fps
-    if total>60: raise ValueError("v2 preview limit: 60 seconds")
+    if total>180: raise ValueError("v2 preview limit: 180 seconds")
     audio=[]
     for a in m.get("audio",[]):
         p=asset(a)
@@ -56,6 +56,18 @@ def render(manifest, output, width=1080, height=1920, fps=30):
         if at+length>total+0.001 or duration(p)+0.02<length:
             raise ValueError(f"audio out of bounds: {p}")
         audio.append((p,at,length,gain))
+    overlays=[]
+    for o in m.get("overlays",[]):
+        p=asset(o)
+        start=num(o["start"],"overlay start",0,total)
+        end=num(o["end"],"overlay end",start,total)
+        if end-start<1/fps: raise ValueError("overlay too short")
+        x=num(o["x"],"overlay x",-1,1); y=num(o["y"],"overlay y",-1,1)
+        xe=num(o.get("x_end",x),"overlay x_end",-1,1)
+        ye=num(o.get("y_end",y),"overlay y_end",-1,1)
+        w=num(o["width"],"overlay width",.02,2)
+        opacity=num(o.get("opacity",1),"overlay opacity",0,1)
+        overlays.append((p,start,end,x,y,xe,ye,w,opacity))
     captions=[]
     for c in m.get("captions",[]):
         a=num(c["start"],"caption start",0,total)
@@ -101,9 +113,22 @@ def render(manifest, output, width=1080, height=1920, fps=30):
             filters.append(f"[{i}:a]atrim=duration={length},asetpts=PTS-STARTPTS,aformat=sample_rates=48000:channel_layouts=stereo,volume={gain},adelay={delay}:all=1[{label}]")
             labels.append(f"[{label}]")
         filters.append("".join(labels)+f"amix=inputs={len(labels)}:duration=first:normalize=0,alimiter=limit=0.84:level=false[a]")
-        video=["-vf",f"ass={ass}","-c:v","libx264","-threads","2","-preset","veryfast","-crf","19"] if captions else ["-c:v","copy"]
+        vlabel="0:v"
+        for i,(p,start,end,x,y,xe,ye,w,opacity) in enumerate(overlays,2+len(audio)):
+            inp+=["-loop","1","-framerate",fps,"-i",p]
+            layer=f"layer{i}"; nextv=f"v{i}"
+            filters.append(f"[{i}:v]scale={max(2,round(w*width/2)*2)}:-2,format=rgba,colorchannelmixer=aa={opacity},trim=duration={end-start},setpts=PTS-STARTPTS+{start}/TB[{layer}]")
+            exprx=f"{width}*({x}+({xe-x})*(t-{start})/{end-start})"
+            expry=f"{height}*({y}+({ye-y})*(t-{start})/{end-start})"
+            filters.append(f"[{vlabel}][{layer}]overlay=x='{exprx}':y='{expry}':eof_action=pass:repeatlast=0:enable='between(t,{start},{end})'[{nextv}]")
+            vlabel=nextv
+        if captions:
+            filters.append(f"[{vlabel}]ass={ass}[captioned]")
+            vlabel="captioned"
+        video=["-c:v","libx264","-threads","2","-preset","veryfast","-crf","19"] if captions or overlays else ["-c:v","copy"]
+        vmap=f"[{vlabel}]" if captions or overlays else "0:v"
         output.parent.mkdir(parents=True,exist_ok=True)
-        run(*inp,"-filter_complex",";".join(filters),"-map","0:v","-map","[a]",*video,"-c:a","aac","-b:a","192k","-t",total,"-movflags","+faststart",output)
+        run(*inp,"-filter_complex",";".join(filters),"-map",vmap,"-map","[a]",*video,"-c:a","aac","-b:a","192k","-t",total,"-movflags","+faststart",output)
     print(f"{output}: {total:.2f}s, {len(shots)} shots")
 
 if __name__=="__main__":

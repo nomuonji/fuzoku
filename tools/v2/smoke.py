@@ -20,4 +20,15 @@ with tempfile.TemporaryDirectory() as tmp:
     try: render(d/"m.json",d/"bad.mp4",540,960)
     except ValueError: pass
     else: raise AssertionError("short source accepted")
-    print("render smoke passed")
+    # A moving image layer must really appear at the requested time and location.
+    run("-f","lavfi","-i","color=blue:size=540x960","-frames:v",1,"-threads",1,d/"blue.png")
+    m={"shots":[item("blue.png",kind="image",seconds=2)],"overlays":[item("still.png",start=.5,end=1.5,x=.1,y=.2,x_end=.7,width=.2,opacity=1)]}
+    (d/"m.json").write_text(json.dumps(m))
+    render(d/"m.json",d/"layers.mp4",540,960)
+    def pixel(t,x,y):
+        raw=subprocess.check_output(["ffmpeg","-v","error","-ss",str(t),"-i",str(d/"layers.mp4"),"-vf",f"crop=2:2:{x}:{y}","-frames:v","1","-f","rawvideo","-pix_fmt","rgb24","-"])
+        return tuple(raw[:3])
+    for t,x,red in [(0.2,80,False),(.65,130,True),(1.3,340,True),(1.75,340,False)]:
+        p=pixel(t,x,220)
+        assert (p[0]>p[2])==red,(t,x,p)
+    print("render smoke passed: time-dependent compositing verified")
