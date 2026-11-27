@@ -1,0 +1,29 @@
+name: Atacama v2 preview only
+on:
+  push:
+    branches: [experiment/shorts-v2]
+    paths:
+      - 'tools/v2/atacama_v2.py'
+      - '.github/workflows/atacama-v2.yml'
+permissions:
+  contents: read
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update -qq && sudo apt-get install -y ffmpeg fonts-noto-cjk
+      - run: pip install Pillow numpy
+      - run: bash tools/voicevox/start.sh
+      - run: python tools/v2/atacama_v2.py atacama
+      - uses: actions/upload-artifact@v4
+        with:
+          name: atacama-v2-preview
+          path: |
+            atacama/atacama-v2.mp4
+            atacama/contact-sheet.jpg
+            atacama/timeline.json
+            atacama/credits.txt
+            atacama/source_fig*.jpg
+          retention-days: 14
